@@ -1,0 +1,32 @@
+{
+  "id": "hemoagenda-pro-v8",
+  "name": "HemoAgenda Pro - Suite Profissional",
+  "short_name": "HemoAgenda",
+  "description": "Sistema de Gestão e Agendamento para Hemodinâmica (Neuro, Cardio e Vascular).",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#0f172a",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "categories": [
+    "medical",
+    "productivity"
+  ]
+}
