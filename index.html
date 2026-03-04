@@ -27,7 +27,7 @@
         .active-screen { display: flex; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Estilo das Células do Calendário */
+        /* Estilo do Calendário */
         .day-cell { min-height: 130px; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); position: relative; border-radius: 12px; background: white; border: 1px solid #e2e8f0; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
         .day-cell:hover { border-color: #3b82f6; transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); z-index: 10; }
         .day-active { border: 2px solid #2563eb !important; background-color: #eff6ff !important; }
@@ -38,10 +38,11 @@
         .patient-list-mini { display: flex; flex-direction: column; gap: 3px; margin-top: 6px; flex: 1; overflow: hidden; padding: 0 4px; }
         .patient-item-mini { font-size: 9px; color: #334155; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 3px 6px; background: #f1f5f9; border-radius: 6px; border-left: 3px solid #3b82f6; text-transform: uppercase; }
         
+        /* Status Bar no Card */
         .status-bar { display: flex; gap: 4px; padding: 6px 8px; background: #f8fafc; border-top: 1px solid #f1f5f9; margin-top: auto; align-items: center; }
         .status-dot { height: 6px; width: 6px; border-radius: 50%; }
 
-        /* Painéis Laterais */
+        /* Painéis */
         #editor-panel, #admin-panel { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); border-top-left-radius: 24px; border-bottom-left-radius: 24px; }
         .editor-closed { transform: translateX(100%); }
         
@@ -53,15 +54,11 @@
         input:focus { border-color: #3b82f6; background: white; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
         
         .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
-        /* Cartões de Estatística */
-        .stat-card { background: white; padding: 16px; border-radius: 16px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; min-width: 130px; flex: 1; position: relative; overflow: hidden; }
-        .stat-card i { position: absolute; right: -10px; bottom: -10px; font-size: 40px; opacity: 0.05; }
-        .stat-blue::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background: #3b82f6; }
-
-        /* Layout de Login */
+        .stat-card { background: white; padding: 16px; border-radius: 16px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; min-width: 140px; flex: 1; position: relative; overflow: hidden; }
+        
+        /* Layout Login */
         .login-icon-box { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; align-items: center; }
         .icon-container-login { width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: white; font-size: 28px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
         .vascular-svg { width: 38px; height: 38px; fill: none; stroke: white; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
@@ -70,7 +67,7 @@
 <body>
 
     <script>
-        // --- CONFIGURAÇÃO E VARIÁVEIS GLOBAIS ---
+        // --- CONFIGURAÇÃO SUPABASE ---
         const apiKey = ""; 
         const PROJECT_URL = 'https://njoddjcobyqzaltzbvri.supabase.co'; 
         const PROJECT_KEY = 'sb_publishable_PITGaXHPP28arj3Pam8ryg_PdzjzY4u';
@@ -92,18 +89,20 @@
         let saveTimer = null;
         let isSaving = false;
         let pendingLoginData = null;
+        
         const MONTHS = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+        const WEEKDAYS = ["DOMINGO", "SEGUNDA FEIRA", "TERÇA FEIRA", "QUARTA FEIRA", "QUINTA FEIRA", "SEXTA FEIRA", "SÁBADO"];
     </script>
 
     <!-- TELA LOGIN -->
     <div id="screen-login" class="screen active-screen items-center justify-center bg-slate-50 p-6">
-        <div class="bg-white p-12 rounded-[32px] shadow-2xl w-full max-w-sm text-center border border-slate-100 relative overflow-hidden">
+        <div class="bg-white p-10 md:p-12 rounded-[32px] shadow-2xl w-full max-w-sm text-center border border-slate-100 relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 via-emerald-500 to-red-500"></div>
             
             <div class="login-icon-box">
-                <div class="icon-container-login bg-gradient-to-br from-blue-500 to-blue-700 shadow-blue-200"><i class="fas fa-brain"></i></div>
-                <div class="icon-container-login bg-gradient-to-br from-red-500 to-red-700 shadow-red-200"><i class="fas fa-heart"></i></div>
-                <div class="icon-container-login bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-emerald-200">
+                <div class="icon-container-login bg-gradient-to-br from-blue-600 to-blue-800 shadow-blue-200"><i class="fas fa-brain"></i></div>
+                <div class="icon-container-login bg-gradient-to-br from-red-600 to-red-800 shadow-red-200"><i class="fas fa-heart"></i></div>
+                <div class="icon-container-login bg-gradient-to-br from-emerald-600 to-emerald-800 shadow-emerald-200">
                     <svg class="vascular-svg" viewBox="0 0 24 24">
                         <path d="M12,2 C12,2 10,6 10,10 C10,14 12,18 12,22" />
                         <path d="M12,10 C12,10 15,8 17,6" />
@@ -115,13 +114,19 @@
             </div>
 
             <h1 class="text-3xl font-black text-slate-800 mb-1 tracking-tight">HemoAgenda</h1>
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mb-10">Suite Profissional</p>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-10">Suite Profissional</p>
             
-            <form onsubmit="handleLogin(event)" class="space-y-4">
-                <input type="text" id="login-user" placeholder="E-mail profissional" class="p-4 w-full border border-slate-200 rounded-xl bg-slate-50 outline-none font-bold text-slate-700 focus:bg-white focus:border-blue-500 transition-all">
-                <input type="password" id="login-pass" placeholder="Palavra-passe" class="p-4 w-full border border-slate-200 rounded-xl bg-slate-50 outline-none font-bold text-slate-700 focus:bg-white focus:border-blue-500 transition-all">
-                <button type="submit" id="btn-login" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-black transition-all uppercase tracking-widest text-sm">Acessar Histórico</button>
-                <button type="button" id="btn-force-login" onclick="forceLogin()" class="hidden w-full bg-red-600 text-white font-bold py-4 rounded-xl shadow-lg border-2 border-red-800 uppercase tracking-widest text-sm">Forçar Entrada</button>
+            <form onsubmit="handleLogin(event)" class="space-y-4 text-left">
+                <div>
+                    <label class="text-[9px] font-black text-slate-400 uppercase ml-1 mb-1 block">E-mail Profissional</label>
+                    <input type="text" id="login-user" placeholder="exemplo@gmail.com" class="p-4 w-full border border-slate-200 rounded-xl bg-slate-50 font-bold text-slate-700 outline-none focus:bg-white focus:border-blue-500 transition-all">
+                </div>
+                <div>
+                    <label class="text-[9px] font-black text-slate-400 uppercase ml-1 mb-1 block">Palavra-passe</label>
+                    <input type="password" id="login-pass" placeholder="••••••••" class="p-4 w-full border border-slate-200 rounded-xl bg-slate-50 font-bold text-slate-700 outline-none focus:bg-white focus:border-blue-500 transition-all">
+                </div>
+                <button type="submit" id="btn-login" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-black transition-all uppercase tracking-widest text-sm mt-2">Acessar Histórico</button>
+                <button type="button" id="btn-force-login" onclick="forceLogin()" class="hidden w-full bg-red-600 text-white font-bold py-4 rounded-xl shadow-lg border-2 border-red-800 uppercase tracking-widest text-sm mt-2">Forçar Entrada</button>
             </form>
             <p id="login-msg" class="text-red-500 text-[11px] mt-6 h-10 font-black uppercase tracking-widest leading-tight"></p>
         </div>
@@ -144,7 +149,7 @@
                 <button id="btn-admin-panel" onclick="toggleAdminPanel()" class="hidden w-10 h-10 rounded-full bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shadow-sm hover:bg-blue-600 hover:text-white transition"><i class="fas fa-cog"></i></button>
                 <div id="sync-status" class="flex items-center gap-2 px-3 py-1.5 bg-white rounded-full border border-slate-200 shadow-sm">
                     <i id="cloudIcon" class="fas fa-cloud text-emerald-500 text-[10px]"></i>
-                    <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest hidden md:block">Realtime Cloud</span>
+                    <span id="cloudLabel" class="text-[9px] font-black text-slate-500 uppercase tracking-widest hidden md:block">Nuvem Pronta</span>
                 </div>
                 <button onclick="handleLogout()" class="w-10 h-10 rounded-full bg-white border border-slate-200 text-slate-400 hover:text-red-500 transition shadow-sm flex items-center justify-center"><i class="fas fa-power-off"></i></button>
             </div>
@@ -154,30 +159,25 @@
             <div class="flex-1 overflow-y-auto p-4 md:p-8 custom-scroll" id="calendar-area">
                 <!-- Dashboard -->
                 <div class="flex flex-wrap gap-4 mb-8">
-                    <div class="stat-card stat-blue">
+                    <div class="stat-card">
                         <span class="text-[9px] font-black text-slate-400 uppercase mb-1">Pacientes</span>
                         <span id="stat-pacientes" class="text-2xl font-black text-slate-800">0</span>
-                        <i class="fas fa-user-injured"></i>
                     </div>
-                    <div class="stat-card stat-blue">
+                    <div class="stat-card">
                         <span class="text-[9px] font-black text-slate-400 uppercase mb-1">Procedimentos</span>
                         <span id="stat-procedimentos" class="text-2xl font-black text-slate-800">0</span>
-                        <i class="fas fa-syringe"></i>
                     </div>
-                    <div class="stat-card stat-blue">
+                    <div class="stat-card">
                         <span class="text-[9px] font-black text-slate-400 uppercase mb-1">Dias Ativos</span>
                         <span id="stat-dias" class="text-2xl font-black text-slate-800">0</span>
-                        <i class="fas fa-calendar-check"></i>
                     </div>
-                    <div class="stat-card stat-blue">
+                    <div class="stat-card">
                         <span class="text-[9px] font-black text-slate-400 uppercase mb-1">Pendências</span>
                         <span id="stat-pends" class="text-2xl font-black text-amber-500">0</span>
-                        <i class="fas fa-clock"></i>
                     </div>
-                    <div class="stat-card stat-blue">
+                    <div class="stat-card">
                         <span class="text-[9px] font-black text-slate-400 uppercase mb-1">Observações</span>
                         <span id="stat-gargalos" class="text-2xl font-black text-red-600">0</span>
-                        <i class="fas fa-exclamation-triangle"></i>
                     </div>
                 </div>
 
@@ -190,7 +190,7 @@
             <!-- Painel Admin -->
             <div id="admin-panel" class="absolute inset-y-0 right-0 w-full md:w-[350px] bg-white shadow-2xl z-40 flex flex-col editor-closed border-l border-slate-200">
                 <div class="h-20 border-b border-slate-100 flex justify-between items-center px-8 bg-slate-900 text-white shrink-0">
-                    <h2 class="font-black text-xl uppercase tracking-tighter text-white">Área Master</h2>
+                    <h2 class="font-black text-xl uppercase tracking-tighter">Área Master</h2>
                     <button onclick="toggleAdminPanel()" class="text-white opacity-50 hover:opacity-100"><i class="fas fa-times text-xl"></i></button>
                 </div>
                 <div class="p-6 space-y-4 overflow-y-auto custom-scroll flex-1 text-slate-600">
@@ -201,7 +201,7 @@
                 </div>
             </div>
 
-            <!-- Editor Central -->
+            <!-- Painel Editor -->
             <div id="editor-panel" class="absolute inset-y-0 right-0 w-full md:w-[94%] bg-white shadow-2xl z-30 flex flex-col editor-closed border-l border-slate-200">
                 <div class="h-20 border-b border-slate-100 flex justify-between items-center px-8 bg-white shrink-0">
                     <div class="flex items-center gap-4">
@@ -213,23 +213,23 @@
                     </div>
                     <div class="flex gap-2">
                         <button onclick="generateClinicalInsight()" class="bg-violet-50 text-violet-600 px-4 py-2.5 rounded-xl text-[11px] font-black border border-violet-100 hover:bg-violet-600 hover:text-white transition-all"><i class="fas fa-robot"></i> RESUMO IA</button>
-                        <button onclick="exportPDF()" class="bg-slate-800 text-white px-5 py-2.5 rounded-xl text-[11px] font-black shadow-lg hover:bg-black transition-all flex items-center gap-2"><i class="fas fa-file-pdf"></i> PDF</button>
+                        <button onclick="exportPDF()" class="bg-slate-800 text-white px-5 py-2.5 rounded-xl text-[11px] font-black shadow-lg hover:bg-black transition-all flex items-center gap-2"><i class="fas fa-file-pdf"></i> GERAR PDF</button>
                         <button onclick="closeEditor()" class="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center transition hover:bg-slate-200"><i class="fas fa-times"></i></button>
                     </div>
                 </div>
 
                 <div class="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 bg-slate-50/50 custom-scroll">
                     <div class="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-                        <h3 class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Procedimentos Marcados</h3>
-                        <button onclick="addRow()" class="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-[11px] font-black hover:bg-blue-700 transition shadow-lg active:scale-95"><i class="fas fa-plus mr-2"></i>ADICIONAR PACIENTE</button>
+                        <h3 class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Procedimentos do Dia</h3>
+                        <button onclick="addRow()" class="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-[11px] font-black hover:bg-blue-700 shadow-lg active:scale-95"><i class="fas fa-plus mr-2"></i>ADICIONAR PACIENTE</button>
                     </div>
                     
                     <div class="table-container shadow-sm bg-white border border-slate-200 rounded-2xl overflow-hidden">
                         <div class="overflow-x-auto custom-scroll">
-                            <table class="w-full text-left border-collapse min-w-[1750px]">
+                            <table class="w-full text-left border-collapse min-w-[1850px]">
                                 <thead>
                                     <tr>
-                                        <th width="90">Horário</th><th width="70">Sala</th><th width="240">Paciente</th><th width="120">Nascimento</th><th width="70">Idade</th><th width="140">Convénio</th><th width="180">Médico</th><th width="100">Origem</th><th width="200">Procedimento</th><th width="110">Destino</th><th width="110">Material</th><th>Observações</th><th width="50"></th>
+                                        <th width="90">Horário</th><th width="70">Sala</th><th width="240">Paciente</th><th width="120">Nascimento</th><th width="70">Idade</th><th width="140">Convénio</th><th width="180">Médico</th><th width="100">Origem</th><th width="200">Procedimento</th><th width="110">Destino</th><th width="110">Material</th><th>Observação</th><th width="50"></th>
                                     </tr>
                                 </thead>
                                 <tbody id="agenda-body" class="bg-white"></tbody>
@@ -237,16 +237,28 @@
                         </div>
                     </div>
 
-                    <!-- Campos de Texto Rápidos -->
+                    <!-- Campos de Notas -->
                     <div class="grid grid-cols-1 md:grid-cols-5 gap-6 pt-6 border-t border-slate-200">
-                        <div class="bg-white p-5 rounded-2xl border border-blue-200 shadow-sm ring-2 ring-blue-50">
-                            <label class="text-[10px] font-black text-blue-600 uppercase mb-3 block tracking-widest"><i class="fas fa-sticky-note"></i> OBSERVAÇÕES GERAIS</label>
-                            <textarea id="field-obs-geral" oninput="debouncedSave()" class="w-full h-36 p-4 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none font-medium resize-none transition-all focus:bg-white" placeholder="Notas importantes..."></textarea>
+                        <div class="bg-white p-5 rounded-2xl border border-blue-200 shadow-sm">
+                            <label class="text-[10px] font-black text-blue-600 uppercase mb-3 block tracking-widest">Observações Gerais</label>
+                            <textarea id="field-obs-geral" oninput="debouncedSave()" class="w-full h-36 p-4 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none focus:bg-white"></textarea>
                         </div>
-                        <div class="bg-white p-5 rounded-2xl border border-emerald-100 shadow-sm"><label class="text-[10px] font-black text-emerald-600 uppercase mb-3 block tracking-widest">Autorizados</label><textarea id="field-auth" oninput="debouncedSave()" class="w-full h-36 p-4 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none" placeholder="Materiais..."></textarea></div>
-                        <div class="bg-white p-5 rounded-2xl border border-amber-100 shadow-sm"><label class="text-[10px] font-black text-amber-600 uppercase mb-3 block tracking-widest">Pendências</label><textarea id="field-pend" oninput="debouncedSave()" class="w-full h-36 p-4 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none" placeholder="Liberação..."></textarea></div>
-                        <div class="bg-white p-5 rounded-2xl border border-red-100 shadow-sm"><label class="text-[10px] font-black text-red-600 uppercase mb-3 block tracking-widest">Observações</label><textarea id="field-denied" oninput="debouncedSave()" class="w-full h-36 p-4 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none" placeholder="Observações de pauta..."></textarea></div>
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm opacity-60"><label class="text-[10px] font-black text-slate-500 uppercase mb-3 block tracking-widest">Outros</label><textarea id="field-unauth" oninput="debouncedSave()" class="w-full h-36 p-4 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none"></textarea></div>
+                        <div class="bg-white p-5 rounded-2xl border border-emerald-100 shadow-sm">
+                            <label class="text-[10px] font-black text-emerald-600 uppercase mb-3 block tracking-widest">Autorizados</label>
+                            <textarea id="field-auth" oninput="debouncedSave()" class="w-full h-36 p-4 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none focus:bg-white"></textarea>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-amber-100 shadow-sm">
+                            <label class="text-[10px] font-black text-amber-600 uppercase mb-3 block tracking-widest">Pendências</label>
+                            <textarea id="field-pend" oninput="debouncedSave()" class="w-full h-36 p-4 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none focus:bg-white"></textarea>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-red-100 shadow-sm">
+                            <label class="text-[10px] font-black text-red-600 uppercase mb-3 block tracking-widest">Observações Críticas</label>
+                            <textarea id="field-denied" oninput="debouncedSave()" class="w-full h-36 p-4 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none focus:bg-white"></textarea>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm opacity-60">
+                            <label class="text-[10px] font-black text-slate-500 uppercase mb-3 block tracking-widest">Outros</label>
+                            <textarea id="field-unauth" oninput="debouncedSave()" class="w-full h-36 p-4 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none focus:bg-white"></textarea>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -254,7 +266,7 @@
         </div>
     </div>
 
-    <!-- Modal IA -->
+    <!-- MODAL IA -->
     <div id="ai-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
         <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div class="bg-violet-700 p-6 flex justify-between items-center text-white">
@@ -270,9 +282,8 @@
     </div>
 
     <script>
-        // --- CORE LOGIC v9.4 ---
+        // --- LÓGICA PRINCIPAL v9.7 ---
         window.onload = () => { if (currentUser) init(); else show('login'); };
-
         function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen')); document.getElementById(`screen-${id}`).classList.add('active-screen'); }
 
         async function handleLogin(e) {
@@ -280,7 +291,7 @@
             const u = document.getElementById('login-user').value.trim().toLowerCase();
             const p = document.getElementById('login-pass').value.trim();
             const msgBox = document.getElementById('login-msg');
-            msgBox.innerText = "Recuperando histórico Cloud...";
+            msgBox.innerText = "A ligar ao servidor...";
             
             const { data } = await _supabase.from('hemo_users').select('*').eq('email', u).eq('password', p).maybeSingle();
             
@@ -314,6 +325,7 @@
         }
 
         async function handleLogout() { 
+            // 🛡️ TRAVA DE SEGURANÇA 1: SALVAMENTO BLOQUEANTE NA SAÍDA
             if (selectedDay) { await save(); await new Promise(r => setTimeout(r, 600)); }
             localStorage.clear(); location.reload(); 
         }
@@ -343,7 +355,7 @@
         }
 
         function setupRealtime() {
-            _supabase.channel('cloud-sync-v94').on('postgres_changes', { event: '*', schema: 'public', table: 'hemo_agenda' }, (payload) => {
+            _supabase.channel('cloud-sync-final-97').on('postgres_changes', { event: '*', schema: 'public', table: 'hemo_agenda' }, (payload) => {
                 if (payload.new.user_email === currentUser) {
                     monthData[payload.new.date_key] = payload.new;
                     renderCalendar();
@@ -377,7 +389,6 @@
                             ${(data.auth?.trim()) ? '<div class="status-dot bg-emerald-500"></div>' : ''}
                             ${(data.pend?.trim()) ? '<div class="status-dot bg-amber-500"></div>' : ''}
                             ${(data.issue?.trim()) ? '<div class="status-dot bg-red-500"></div>' : ''}
-                            ${(data.obs_geral?.trim()) ? '<div class="status-dot bg-blue-500"></div>' : ''}
                         </div>
                     </div>`;
             }
@@ -399,7 +410,8 @@
         }
 
         async function closeEditor() { 
-            await save();
+            // 🛡️ TRAVA DE SEGURANÇA 2: AGUARDA SALVAMENTO ANTES DE FECHAR
+            await save(); 
             document.getElementById('editor-panel').classList.add('editor-closed'); 
             document.getElementById('overlay').classList.add('hidden'); 
             selectedDay = null; renderCalendar(); 
@@ -418,11 +430,11 @@
                 tr.innerHTML = `
                     <td><input type="time" value="${p.time || ''}" onchange="updateRow(${idx}, 'time', this.value)"></td>
                     <td><input type="number" value="${p.room || 1}" onchange="updateRow(${idx}, 'room', this.value)"></td>
-                    <td><input type="text" value="${p.patient || ''}" onchange="updateRow(${idx}, 'patient', this.value)" class="font-black uppercase text-slate-700" placeholder="PACIENTE"></td>
-                    <td><input type="text" value="${p.dn || ''}" oninput="maskDate(this)" onchange="handleAgeAuto(${idx}, this.value)" placeholder="DD/MM/AAAA"></td>
+                    <td><input type="text" value="${p.patient || ''}" onchange="updateRow(${idx}, 'patient', this.value)" class="font-black uppercase text-slate-700"></td>
+                    <td><input type="text" value="${p.dn || ''}" oninput="maskDate(this)" onchange="handleAgeAuto(${idx}, this.value)"></td>
                     <td><input type="number" id="age-${idx}" value="${p.age || ''}" onchange="updateRow(${idx}, 'age', this.value)"></td>
                     <td><input type="text" value="${p.insurance || ''}" onchange="updateRow(${idx}, 'insurance', this.value)" class="uppercase"></td>
-                    <td><input type="text" value="${p.doctor || 'DR. '}" onchange="updateRow(${idx}, 'doctor', this.value)" class="uppercase text-blue-600 font-bold"></td>
+                    <td><input type="text" value="${p.doctor || ''}" onchange="updateRow(${idx}, 'doctor', this.value)" class="uppercase text-blue-600 font-bold"></td>
                     <td><input type="text" value="${p.origin || ''}" onchange="updateRow(${idx}, 'origin', this.value)" class="uppercase"></td>
                     <td><input type="text" value="${p.proc || ''}" onchange="updateRow(${idx}, 'proc', this.value)" class="uppercase font-medium"></td>
                     <td><input type="text" value="${p.dest || ''}" onchange="updateRow(${idx}, 'dest', this.value)" class="uppercase"></td>
@@ -433,19 +445,9 @@
             });
         }
 
-        function handleAgeAuto(idx, dob) {
-            updateRow(idx, 'dn', dob);
-            if(dob.length === 10) {
-                const parts = dob.split('/');
-                const birth = new Date(parts[2], parts[1]-1, parts[0]);
-                const age = new Date().getFullYear() - birth.getFullYear();
-                if(!isNaN(age)) { document.getElementById(`age-${idx}`).value = age; updateRow(idx, 'age', age); }
-            }
-        }
-
         function addRow() {
             if (!monthData[selectedDay]) monthData[selectedDay] = { procedures: [] };
-            monthData[selectedDay].procedures.push({ time: '08:00', room: 1, doctor: 'DR. ' });
+            monthData[selectedDay].procedures.push({ time: '08:00', room: 1 });
             refreshEditor(monthData[selectedDay]); debouncedSave();
         }
 
@@ -453,51 +455,80 @@
         function delRow(idx) { monthData[selectedDay].procedures.splice(idx, 1); refreshEditor(monthData[selectedDay]); debouncedSave(); }
         
         function debouncedSave() { 
-            document.getElementById('cloudIcon').className = "fas fa-sync fa-spin text-blue-400";
-            clearTimeout(saveTimer); saveTimer = setTimeout(save, 800); 
+            document.getElementById('cloudIcon').className = "fas fa-sync fa-spin text-amber-500";
+            document.getElementById('cloudLabel').innerText = "Aguarde...";
+            clearTimeout(saveTimer); saveTimer = setTimeout(save, 700); 
         }
 
         async function save() {
-            if (!selectedDay || isSaving) return; isSaving = true;
+            if (!selectedDay) return;
+            const icon = document.getElementById('cloudIcon');
+            const label = document.getElementById('cloudLabel');
+            icon.className = "fas fa-sync fa-spin text-amber-500";
+            label.innerText = "A Sincronizar...";
+
+            // 🛡️ TRAVA DE SEGURANÇA 3: EXTRAÇÃO DIRETA DO DOM
             const p = {
-                user_email: currentUser, date_key: selectedDay,
-                obs_geral: document.getElementById('field-obs-geral').value,
-                auth: document.getElementById('field-auth').value,
-                pend: document.getElementById('field-pend').value,
-                issue: document.getElementById('field-denied').value,
-                unauth: document.getElementById('field-unauth').value,
-                procedures: monthData[selectedDay].procedures || [],
+                user_email: currentUser, 
+                date_key: selectedDay,
+                obs_geral: document.getElementById('field-obs-geral')?.value || '',
+                auth: document.getElementById('field-auth')?.value || '',
+                pend: document.getElementById('field-pend')?.value || '',
+                issue: document.getElementById('field-denied')?.value || '',
+                unauth: document.getElementById('field-unauth')?.value || '',
+                procedures: monthData[selectedDay]?.procedures || [],
                 updated_at: new Date().toISOString()
             };
+            
             monthData[selectedDay] = p;
             const { error } = await _supabase.from('hemo_agenda').upsert(p, { onConflict: 'user_email, date_key' });
-            if (!error) {
-                document.getElementById('cloudIcon').className = "fas fa-cloud text-emerald-500";
-                document.getElementById('cloudIcon').title = "Histórico Seguro";
-            } else {
-                document.getElementById('cloudIcon').className = "fas fa-exclamation-triangle text-red-500";
+            
+            if (!error) { 
+                icon.className = "fas fa-cloud text-emerald-500"; 
+                label.innerText = "Nuvem OK"; 
+            } else { 
+                icon.className = "fas fa-exclamation-triangle text-red-500"; 
+                label.innerText = "Erro de Sinc!"; 
             }
-            isSaving = false;
         }
 
         async function exportPDF() {
             const { jsPDF } = window.jspdf; const doc = new jsPDF('landscape');
             const data = monthData[selectedDay] || { procedures: [] };
-            doc.setFontSize(22); doc.setFont(undefined, 'bold');
-            doc.text(`AGENDA DIÁRIA HEMODINÂMICA - ${selectedDay}`, 148, 20, { align: "center" });
-            const rows = (data.procedures || []).map(p => [p.time, p.room, p.patient, p.dn, p.age, p.insurance, p.doctor, p.proc, p.opme, p.obs]);
+            const dateParts = selectedDay.split('-');
+            const dateObj = new Date(dateParts[0], dateParts[1]-1, dateParts[2]);
+            const formattedDate = `DIA ${dateParts[2]}/${dateParts[1]} (${WEEKDAYS[dateObj.getDay()]})`;
+
+            // CABEÇALHO AZUL CLARO (MODELO FÍSICO)
+            doc.setFillColor(218, 232, 252); doc.rect(14, 10, 269, 12, 'F');
+            doc.setFontSize(22); doc.setFont(undefined, 'bold'); doc.text('HEMODINÂMICA', 148.5, 19, { align: 'center' });
+            
+            // DATA COM FUNDO AMARELO (MODELO FÍSICO)
+            doc.setFillColor(255, 255, 0); doc.rect(14, 25, 75, 8, 'F');
+            doc.setFontSize(10); doc.text(formattedDate, 16, 30.5);
+
+            const cols = ['HORÁRIO', 'SALA', 'PACIENTE', 'DN', 'IDADE', 'CONVÊNIO', 'MÉDICO EXECUTOR', 'ORIGEM', 'PROCEDIMENTO', 'DESTINO', 'OPME', 'OBSERVAÇÃO'];
+            const rows = (data.procedures || []).map(p => [p.time||'', p.room||'', p.patient?.toUpperCase()||'', p.dn||'', p.age||'', p.insurance?.toUpperCase()||'', p.doctor?.toUpperCase()||'', p.origin?.toUpperCase()||'', p.proc?.toUpperCase()||'', p.dest?.toUpperCase()||'', p.opme?.toUpperCase()||'', p.obs||'']);
+
             doc.autoTable({ 
-                startY: 30, head: [['HORA', 'SALA', 'PACIENTE', 'DN', 'IDADE', 'CONVÉNiO', 'MÉDICO', 'PROCEDIMENTO', 'MATERIAL', 'OBS']], 
-                body: rows, theme: 'grid', headStyles: { fillColor: [30, 41, 59] }
+                startY: 35, 
+                head: [cols], 
+                body: rows, 
+                theme: 'grid', 
+                styles: { fontSize: 7, halign: 'center', textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [0, 0, 0] }, 
+                headStyles: { fillColor: [255, 255, 255], textColor: [0,0,0], fontStyle: 'bold' }, 
+                columnStyles: { 2: { fontStyle: 'bold', cellWidth: 42 } } 
             });
-            doc.save(`Agenda_${selectedDay}.pdf`);
+            doc.save(`Agenda_Hemo_${selectedDay}.pdf`);
         }
 
         function toggleAdminPanel() { 
             const p = document.getElementById('admin-panel');
             if(p.classList.contains('editor-closed')) {
                 p.classList.remove('editor-closed'); document.getElementById('overlay').classList.remove('hidden'); loadAdminInfo();
-            } else closeAllPanels();
+            } else {
+                p.classList.add('editor-closed'); document.getElementById('overlay').classList.add('hidden');
+            }
         }
 
         async function loadAdminInfo() {
@@ -530,10 +561,10 @@
 
         function speakAI() { const text = document.getElementById('ai-content').innerText; const ut = new SpeechSynthesisUtterance(text); ut.lang = 'pt-BR'; window.speechSynthesis.speak(ut); }
         function closeAIModal() { window.speechSynthesis.cancel(); document.getElementById('ai-modal').classList.add('hidden'); }
-        function closeAllPanels() { if (selectedDay) save(); document.getElementById('editor-panel').classList.add('editor-closed'); document.getElementById('admin-panel').classList.add('editor-closed'); document.getElementById('overlay').classList.add('hidden'); selectedDay = null; renderCalendar(); }
+        function handleAgeAuto(idx, dob) { updateRow(idx, 'dn', dob); if(dob.length === 10) { const parts = dob.split('/'); const b = new Date(parts[2], parts[1]-1, parts[0]); const age = new Date().getFullYear() - b.getFullYear(); if(!isNaN(age)) { document.getElementById(`age-${idx}`).value = age; updateRow(idx, 'age', age); } } }
+        function maskDate(i) { let v = i.value.replace(/\D/g, '').slice(0, 8); if(v.length>=5) v=`${v.slice(0,2)}/${v.slice(2,4)}/${v.slice(4)}`; else if(v.length>=3) v=`${v.slice(0,2)}/${v.slice(2)}`; i.value=v; }
         function changeMonth(v) { currentDate.setMonth(currentDate.getMonth()+v); fetchData(); renderCalendar(); }
         function goToToday() { currentDate = new Date(); fetchData(); renderCalendar(); }
-        function maskDate(i) { let v = i.value.replace(/\D/g, '').slice(0, 8); if(v.length>=5) v=`${v.slice(0,2)}/${v.slice(2,4)}/${v.slice(4)}`; else if(v.length>=3) v=`${v.slice(0,2)}/${v.slice(2)}`; i.value=v; }
     </script>
 </body>
 </html>
