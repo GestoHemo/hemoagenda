@@ -23,11 +23,15 @@
     
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; height: 100vh; overflow: hidden; }
+        
+        /* 🛡️ PROTEÇÃO VISUAL CONTRA SELEÇÃO DE TEXTO */
+        body { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
+        input, textarea { -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text; }
+
         .screen { display: none; height: 100%; width: 100%; flex-direction: column; }
         .active-screen { display: flex; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Estilo do Calendário */
         .day-cell { min-height: 130px; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); position: relative; border-radius: 12px; background: white; border: 1px solid #e2e8f0; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
         .day-cell:hover { border-color: #3b82f6; transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); z-index: 10; }
         .day-active { border: 2px solid #2563eb !important; background-color: #eff6ff !important; }
@@ -38,11 +42,9 @@
         .patient-list-mini { display: flex; flex-direction: column; gap: 3px; margin-top: 6px; flex: 1; overflow: hidden; padding: 0 4px; }
         .patient-item-mini { font-size: 9px; color: #334155; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 3px 6px; background: #f1f5f9; border-radius: 6px; border-left: 3px solid #3b82f6; text-transform: uppercase; }
         
-        /* Status Bar no Card */
         .status-bar { display: flex; gap: 4px; padding: 6px 8px; background: #f8fafc; border-top: 1px solid #f1f5f9; margin-top: auto; align-items: center; }
         .status-dot { height: 6px; width: 6px; border-radius: 50%; }
 
-        /* Painéis */
         #editor-panel, #admin-panel { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); border-top-left-radius: 24px; border-bottom-left-radius: 24px; }
         .editor-closed { transform: translateX(100%); }
         
@@ -53,7 +55,6 @@
         input { font-size: 11px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; width: 100%; transition: all 0.2s; background: #fdfdfd; }
         input:focus { border-color: #3b82f6; background: white; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
         
-        /* Estilo do Seletor de Sala/RPA na tabela */
         select.custom-select { font-size: 11px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; width: 100%; transition: all 0.2s; background: #fdfdfd; cursor: pointer; font-weight: 700; text-align: center; appearance: none; -webkit-appearance: none; -moz-appearance: none; }
         select.custom-select:focus { border-color: #3b82f6; background: white; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
 
@@ -62,7 +63,6 @@
 
         .stat-card { background: white; padding: 16px; border-radius: 16px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; min-width: 140px; flex: 1; position: relative; overflow: hidden; }
         
-        /* Layout Login */
         .login-icon-box { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; align-items: center; }
         .icon-container-login { width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: white; font-size: 28px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
         .vascular-svg { width: 38px; height: 38px; fill: none; stroke: white; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
@@ -71,6 +71,16 @@
 <body>
 
     <script>
+        // 🛡️ PROTEÇÃO DO CÓDIGO (Impede TI de usar F12)
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.onkeydown = function(e) {
+            if(e.keyCode == 123) { return false; } // F12
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) { return false; } 
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) { return false; } 
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) { return false; } 
+            if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { return false; } 
+        }
+
         // --- CONFIGURAÇÃO SUPABASE ---
         const apiKey = ""; 
         const PROJECT_URL = 'https://njoddjcobyqzaltzbvri.supabase.co'; 
@@ -118,7 +128,7 @@
             </div>
 
             <h1 class="text-3xl font-black text-slate-800 mb-1 tracking-tight">HemoAgenda</h1>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-10">Suite Profissional v9.10</p>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-10">Suite Segura v9.14</p>
             
             <form onsubmit="handleLogin(event)" class="space-y-4 text-left">
                 <div>
@@ -129,8 +139,7 @@
                     <label class="text-[9px] font-black text-slate-400 uppercase ml-1 mb-1 block">Palavra-passe</label>
                     <input type="password" id="login-pass" placeholder="••••••••" class="p-4 w-full border border-slate-200 rounded-xl bg-slate-50 font-bold text-slate-700 outline-none focus:bg-white focus:border-blue-500 transition-all">
                 </div>
-                <button type="submit" id="btn-login" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-black transition-all uppercase tracking-widest text-sm mt-2">Acessar Histórico</button>
-                <button type="button" id="btn-force-login" onclick="forceLogin()" class="hidden w-full bg-red-600 text-white font-bold py-4 rounded-xl shadow-lg border-2 border-red-800 uppercase tracking-widest text-sm mt-2">Forçar Entrada</button>
+                <button type="submit" id="btn-login" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-black transition-all uppercase tracking-widest text-sm mt-2">Acessar Sistema</button>
             </form>
             <p id="login-msg" class="text-red-500 text-[11px] mt-6 h-10 font-black uppercase tracking-widest leading-tight"></p>
         </div>
@@ -161,30 +170,13 @@
 
         <div class="flex flex-1 overflow-hidden relative">
             <div class="flex-1 overflow-y-auto p-4 md:p-8 custom-scroll" id="calendar-area">
-                <!-- Dashboard -->
                 <div class="flex flex-wrap gap-4 mb-8">
-                    <div class="stat-card">
-                        <span class="text-[9px] font-black text-slate-400 uppercase mb-1">Pacientes</span>
-                        <span id="stat-pacientes" class="text-2xl font-black text-slate-800">0</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="text-[9px] font-black text-slate-400 uppercase mb-1">Procedimentos</span>
-                        <span id="stat-procedimentos" class="text-2xl font-black text-slate-800">0</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="text-[9px] font-black text-slate-400 uppercase mb-1">Dias Ativos</span>
-                        <span id="stat-dias" class="text-2xl font-black text-slate-800">0</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="text-[9px] font-black text-slate-400 uppercase mb-1">Pendências</span>
-                        <span id="stat-pends" class="text-2xl font-black text-amber-500">0</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="text-[9px] font-black text-slate-400 uppercase mb-1">Observações</span>
-                        <span id="stat-gargalos" class="text-2xl font-black text-red-600">0</span>
-                    </div>
+                    <div class="stat-card"><span class="text-[9px] font-black text-slate-400 uppercase mb-1">Pacientes</span><span id="stat-pacientes" class="text-2xl font-black text-slate-800">0</span></div>
+                    <div class="stat-card"><span class="text-[9px] font-black text-slate-400 uppercase mb-1">Procedimentos</span><span id="stat-procedimentos" class="text-2xl font-black text-slate-800">0</span></div>
+                    <div class="stat-card"><span class="text-[9px] font-black text-slate-400 uppercase mb-1">Dias Ativos</span><span id="stat-dias" class="text-2xl font-black text-slate-800">0</span></div>
+                    <div class="stat-card"><span class="text-[9px] font-black text-slate-400 uppercase mb-1">Pendências</span><span id="stat-pends" class="text-2xl font-black text-amber-500">0</span></div>
+                    <div class="stat-card"><span class="text-[9px] font-black text-slate-400 uppercase mb-1">Observações</span><span id="stat-gargalos" class="text-2xl font-black text-red-600">0</span></div>
                 </div>
-
                 <div class="grid grid-cols-7 text-center mb-4 text-[11px] font-black text-slate-400 uppercase tracking-widest px-2">
                     <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
                 </div>
@@ -215,16 +207,9 @@
                             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Painel de Controlo Diário</p>
                         </div>
                     </div>
-                    
                     <div class="flex gap-2">
-                        <button onclick="generateClinicalInsight()" class="hidden md:block bg-violet-50 text-violet-600 px-4 py-2.5 rounded-xl text-[11px] font-black border border-violet-100 hover:bg-violet-600 hover:text-white transition-all"><i class="fas fa-robot"></i> IA</button>
-                        
-                        <!-- PDF NORMAL -->
                         <button onclick="exportPDF()" class="bg-blue-600 text-white px-4 py-2.5 rounded-xl text-[10px] font-black shadow-lg hover:bg-blue-700 transition-all flex items-center gap-2"><i class="fas fa-file-pdf"></i> PDF DIÁRIO</button>
-                        
-                        <!-- PDF VAZIO (SEM AGENDAMENTO) -->
                         <button onclick="exportPDFVazio()" class="bg-slate-800 text-white px-4 py-2.5 rounded-xl text-[10px] font-black shadow-lg hover:bg-black transition-all flex items-center gap-2"><i class="fas fa-file-pdf"></i> PDF VAZIO</button>
-                        
                         <button onclick="closeEditor()" class="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center transition hover:bg-slate-200"><i class="fas fa-times"></i></button>
                     </div>
                 </div>
@@ -232,8 +217,6 @@
                 <div class="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 bg-slate-50/50 custom-scroll">
                     <div class="flex flex-col md:flex-row md:justify-between items-start md:items-center bg-white p-4 rounded-2xl border border-slate-200 shadow-sm gap-4">
                         <h3 class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Procedimentos do Dia</h3>
-                        
-                        <!-- BOTÃO ÚNICO DE ADICIONAR PACIENTE (Como na versão anterior) -->
                         <button onclick="addRow()" class="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-[11px] font-black hover:bg-blue-700 transition shadow-lg active:scale-95"><i class="fas fa-plus mr-2"></i>ADICIONAR PACIENTE</button>
                     </div>
                     
@@ -242,7 +225,6 @@
                             <table class="w-full text-left border-collapse min-w-[1850px]">
                                 <thead>
                                     <tr>
-                                        <!-- O campo de Sala/RPA unificado como o cliente pediu -->
                                         <th width="90">Horário</th><th width="90">Sala / RPA</th><th width="240">Paciente</th><th width="120">Nascimento</th><th width="70">Idade</th><th width="140">Convénio</th><th width="180">Médico</th><th width="100">Origem</th><th width="200">Procedimento</th><th width="110">Destino</th><th width="110">Material</th><th>Observação</th><th width="50"></th>
                                     </tr>
                                 </thead>
@@ -251,28 +233,12 @@
                         </div>
                     </div>
 
-                    <!-- Campos de Notas -->
                     <div class="grid grid-cols-1 md:grid-cols-5 gap-6 pt-6 border-t border-slate-200">
-                        <div class="bg-white p-5 rounded-2xl border border-blue-200 shadow-sm">
-                            <label class="text-[10px] font-black text-blue-600 uppercase mb-3 block tracking-widest">Observações Gerais</label>
-                            <textarea id="field-obs-geral" oninput="debouncedSave()" class="w-full h-36 p-4 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none focus:bg-white"></textarea>
-                        </div>
-                        <div class="bg-white p-5 rounded-2xl border border-emerald-100 shadow-sm">
-                            <label class="text-[10px] font-black text-emerald-600 uppercase mb-3 block tracking-widest">Autorizados</label>
-                            <textarea id="field-auth" oninput="debouncedSave()" class="w-full h-36 p-4 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none focus:bg-white"></textarea>
-                        </div>
-                        <div class="bg-white p-5 rounded-2xl border border-amber-100 shadow-sm">
-                            <label class="text-[10px] font-black text-amber-600 uppercase mb-3 block tracking-widest">Pendências</label>
-                            <textarea id="field-pend" oninput="debouncedSave()" class="w-full h-36 p-4 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none focus:bg-white"></textarea>
-                        </div>
-                        <div class="bg-white p-5 rounded-2xl border border-red-100 shadow-sm">
-                            <label class="text-[10px] font-black text-red-600 uppercase mb-3 block tracking-widest">Observações Críticas</label>
-                            <textarea id="field-denied" oninput="debouncedSave()" class="w-full h-36 p-4 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none focus:bg-white"></textarea>
-                        </div>
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm opacity-60">
-                            <label class="text-[10px] font-black text-slate-500 uppercase mb-3 block tracking-widest">Outros</label>
-                            <textarea id="field-unauth" oninput="debouncedSave()" class="w-full h-36 p-4 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none focus:bg-white"></textarea>
-                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-blue-200 shadow-sm"><label class="text-[10px] font-black text-blue-600 uppercase mb-3 block tracking-widest">Observações Gerais</label><textarea id="field-obs-geral" oninput="debouncedSave()" class="w-full h-36 p-4 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none focus:bg-white"></textarea></div>
+                        <div class="bg-white p-5 rounded-2xl border border-emerald-100 shadow-sm"><label class="text-[10px] font-black text-emerald-600 uppercase mb-3 block tracking-widest">Autorizados</label><textarea id="field-auth" oninput="debouncedSave()" class="w-full h-36 p-4 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none focus:bg-white"></textarea></div>
+                        <div class="bg-white p-5 rounded-2xl border border-amber-100 shadow-sm"><label class="text-[10px] font-black text-amber-600 uppercase mb-3 block tracking-widest">Pendências</label><textarea id="field-pend" oninput="debouncedSave()" class="w-full h-36 p-4 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none focus:bg-white"></textarea></div>
+                        <div class="bg-white p-5 rounded-2xl border border-red-100 shadow-sm"><label class="text-[10px] font-black text-red-600 uppercase mb-3 block tracking-widest">Observações Críticas</label><textarea id="field-denied" oninput="debouncedSave()" class="w-full h-36 p-4 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none focus:bg-white"></textarea></div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm opacity-60"><label class="text-[10px] font-black text-slate-500 uppercase mb-3 block tracking-widest">Outros</label><textarea id="field-unauth" oninput="debouncedSave()" class="w-full h-36 p-4 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none focus:bg-white"></textarea></div>
                     </div>
                 </div>
             </div>
@@ -280,23 +246,8 @@
         </div>
     </div>
 
-    <!-- MODAL IA -->
-    <div id="ai-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
-        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div class="bg-violet-700 p-6 flex justify-between items-center text-white">
-                <div class="flex items-center gap-3"><i class="fas fa-robot text-2xl"></i><h3 class="font-black uppercase tracking-tight">Parecer Clínico IA ✨</h3></div>
-                <div class="flex gap-2">
-                    <button onclick="speakAI()" class="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 transition flex items-center justify-center"><i class="fas fa-volume-up"></i></button>
-                    <button onclick="closeAIModal()"><i class="fas fa-times text-xl"></i></button>
-                </div>
-            </div>
-            <div class="p-8 overflow-y-auto custom-scroll flex-1"><div id="ai-content" class="text-slate-700 leading-relaxed text-sm whitespace-pre-wrap font-medium"></div></div>
-            <div class="p-6 bg-slate-50 border-t flex justify-end"><button onclick="closeAIModal()" class="bg-violet-600 text-white px-6 py-2 rounded-xl text-xs font-black">FECHAR</button></div>
-        </div>
-    </div>
-
     <script>
-        // --- LÓGICA PRINCIPAL v9.10 ---
+        // --- LÓGICA PRINCIPAL v9.14 (ORDENAÇÃO IA E MULTI-ECRÃ) ---
         window.onload = () => { if (currentUser) init(); else show('login'); };
         function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen')); document.getElementById(`screen-${id}`).classList.add('active-screen'); }
 
@@ -305,37 +256,53 @@
             const u = document.getElementById('login-user').value.trim().toLowerCase();
             const p = document.getElementById('login-pass').value.trim();
             const msgBox = document.getElementById('login-msg');
-            msgBox.innerText = "A ligar ao servidor...";
             
+            // 🚨 NÍVEL 1: VERIFICAÇÃO DE E-MAIL
+            const isLeticia = u === 'leticialouis61@gmail.com';
+            const isAdminAccount = u === 'jefersondsgomes@gmail.com' || u === 'jefersondsgomes10@gmail.com';
+            
+            if (!isLeticia && !isAdminAccount) {
+                msgBox.innerHTML = "❌ ACESSO PROIBIDO<br><span class='text-[9px]'>E-mail não autorizado neste sistema.</span>";
+                return;
+            }
+
+            msgBox.innerText = "A autenticar segurança...";
             const { data } = await _supabase.from('hemo_users').select('*').eq('email', u).eq('password', p).maybeSingle();
             
             if (data) { 
                 isAdminLocal = data.is_admin || false;
-                const now = new Date();
-                const pingCampo = deviceType === 'desktop' ? data.desktop_ping : data.mobile_ping;
-                const idCampo = deviceType === 'desktop' ? data.desktop_id : data.mobile_id;
-                const estaAtivo = idCampo && pingCampo && (now - new Date(pingCampo)) < 60000;
+                const isWebEnvironment = typeof window.hemoSystem === 'undefined';
                 
-                if (idCampo && idCampo !== deviceId && estaAtivo) {
-                    msgBox.innerHTML = "⚠️ Sessão ativa noutro ecrã.<br><span class='text-[10px] font-bold'>DERRUBAR CONEXÃO ABAIXO</span>";
-                    document.getElementById('btn-login').classList.add('hidden');
-                    document.getElementById('btn-force-login').classList.remove('hidden');
-                    pendingLoginData = { email: u, isAdmin: isAdminLocal }; return;
+                // 🚨 NÍVEL 2: PROTEÇÃO DE AMBIENTE (HARDWARE LOCK)
+                if (!isAdminAccount) {
+                    if (isWebEnvironment) {
+                        // Letícia na Web (Vercel): SÓ PODE USAR TELEMÓVEL!
+                        if (!isMobile) {
+                            msgBox.innerHTML = "❌ ACESSO WEB RESTRITO PARA PC<br><span class='text-[9px]'>Por favor, utilize o programa .EXE no computador ou aceda pelo seu telemóvel.</span>";
+                            return; 
+                        }
+                    } else {
+                        // Letícia no PC (.EXE): TEM DE SER O COMPUTADOR ORIGINAL
+                        const pcIdFisico = window.hemoSystem.hardwareId;
+                        if (!data.hardware_id_autorizado) {
+                            await _supabase.from('hemo_users').update({ hardware_id_autorizado: pcIdFisico }).eq('email', u);
+                        } else if (data.hardware_id_autorizado !== pcIdFisico) {
+                            msgBox.innerHTML = "❌ BLOQUEIO DE HARDWARE (ANTI-CÓPIA)<br><span class='text-[9px]'>Este programa não está autorizado a correr nesta máquina. TI reportado.</span>";
+                            return;
+                        }
+                    }
                 }
-                
+
+                // USO SIMULTÂNEO LIBERADO: Removida a trava que a impedia de usar PC e Telemóvel ao mesmo tempo!
+                // Agora ela pode manter ambos abertos. Atualiza apenas os registos.
                 const updates = deviceType === 'desktop' ? { desktop_id: deviceId, desktop_ping: new Date().toISOString() } : { mobile_id: deviceId, mobile_ping: new Date().toISOString() };
                 await _supabase.from('hemo_users').update(updates).eq('email', u);
+                
                 localStorage.setItem('hemo_user', u); localStorage.setItem('hemo_is_admin', isAdminLocal);
                 currentUser = u; init();
-            } else msgBox.innerText = "❌ E-mail ou Senha incorretos";
-        }
-
-        async function forceLogin() {
-            const updates = deviceType === 'desktop' ? { desktop_id: deviceId, desktop_ping: new Date().toISOString() } : { mobile_id: deviceId, mobile_ping: new Date().toISOString() };
-            await _supabase.from('hemo_users').update(updates).eq('email', pendingLoginData.email);
-            localStorage.setItem('hemo_user', pendingLoginData.email); 
-            localStorage.setItem('hemo_is_admin', pendingLoginData.isAdmin);
-            currentUser = pendingLoginData.email; init();
+            } else {
+                msgBox.innerText = "❌ E-mail ou Senha incorretos";
+            }
         }
 
         async function handleLogout() { 
@@ -368,7 +335,7 @@
         }
 
         function setupRealtime() {
-            _supabase.channel('cloud-sync-final-910').on('postgres_changes', { event: '*', schema: 'public', table: 'hemo_agenda' }, (payload) => {
+            _supabase.channel('cloud-sync-v914').on('postgres_changes', { event: '*', schema: 'public', table: 'hemo_agenda' }, (payload) => {
                 if (payload.new.user_email === currentUser) {
                     monthData[payload.new.date_key] = payload.new;
                     renderCalendar();
@@ -440,7 +407,6 @@
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50 group transition-colors";
                 
-                // MÁGICA AQUI: O Dropdown (Seletor) de Sala/RPA diretamente dentro da tabela
                 tr.innerHTML = `
                     <td><input type="time" value="${p.time || ''}" onchange="updateRow(${idx}, 'time', this.value)"></td>
                     <td>
@@ -465,10 +431,9 @@
             });
         }
 
-        // FUNÇÃO ORIGINAL RESTAURADA: Um único botão que adiciona a linha vazia
         function addRow() {
             if (!monthData[selectedDay]) monthData[selectedDay] = { procedures: [] };
-            monthData[selectedDay].procedures.push({ time: '08:00', room: '1' }); // Por defeito entra na Sala 1
+            monthData[selectedDay].procedures.push({ time: '', room: '1' }); 
             refreshEditor(monthData[selectedDay]); debouncedSave();
         }
 
@@ -511,7 +476,7 @@
             }
         }
 
-        // PDF 1: NORMAL COM PACIENTES (CORES EXATAS E LINHAS GROSSAS)
+        // PDF 1: NORMAL COM ORDENAÇÃO AUTOMÁTICA POR HORÁRIO
         async function exportPDF() {
             const { jsPDF } = window.jspdf; const doc = new jsPDF('landscape');
             const data = monthData[selectedDay] || { procedures: [] };
@@ -519,19 +484,24 @@
             const dateObj = new Date(dateParts[0], dateParts[1]-1, dateParts[2]);
             const formattedDate = `DIA ${dateParts[2]}/${dateParts[1]} (${WEEKDAYS[dateObj.getDay()]})`;
 
-            // CABEÇALHO AZUL CLARO (EXCEL STYLE)
             doc.setFillColor(218, 232, 252); doc.rect(14, 10, 269, 12, 'F');
             doc.setFontSize(22); doc.setFont(undefined, 'bold'); doc.setTextColor(0,0,0); doc.text('HEMODINÂMICA', 148.5, 19, { align: 'center' });
-            
-            // DATA AMARELA FORTE
             doc.setFillColor(255, 255, 0); doc.rect(14, 25, 75, 8, 'F');
             doc.setFontSize(10); doc.text(formattedDate, 16, 30.5);
 
             const cols = ['HORÁRIO', 'SALA/RPA', 'PACIENTE', 'DN', 'IDADE', 'CONVÊNIO', 'MÉDICO EXECUTOR', 'ORIGEM', 'PROCEDIMENTO', 'DESTINO', 'OPME', 'OBSERVAÇÃO'];
             
+            // 🔄 MAGIA DA ORDENAÇÃO: Organiza os pacientes pelo Horário antes de gerar o PDF
+            let sortedProcs = [...(data.procedures || [])].sort((a, b) => {
+                // Se um paciente não tiver horário preenchido, ele vai para o final do dia
+                const timeA = a.time || '23:59';
+                const timeB = b.time || '23:59';
+                return timeA.localeCompare(timeB);
+            });
+
             let rows = [];
-            if (data.procedures && data.procedures.length > 0) {
-                rows = data.procedures.map(p => [
+            if (sortedProcs.length > 0) {
+                rows = sortedProcs.map(p => [
                     p.time||'', p.room||'', p.patient?.toUpperCase()||'', p.dn||'', p.age||'', 
                     p.insurance?.toUpperCase()||'', p.doctor?.toUpperCase()||'', p.origin?.toUpperCase()||'', 
                     p.proc?.toUpperCase()||'', p.dest?.toUpperCase()||'', p.opme?.toUpperCase()||'', p.obs||''
@@ -540,7 +510,6 @@
                 rows = [['', '', '', '', '', '', '', '', '', '', '', '']]; 
             }
 
-            // GRELHA COM LINHAS PRETAS BEM VINCADAS (lineWidth: 0.3)
             doc.autoTable({ 
                 startY: 35, head: [cols], body: rows, theme: 'grid', 
                 styles: { fontSize: 7, halign: 'center', textColor: [0, 0, 0], lineWidth: 0.3, lineColor: [0, 0, 0], font: 'helvetica' }, 
@@ -550,27 +519,21 @@
             doc.save(`Agenda_Hemo_${selectedDay}.pdf`);
         }
 
-        // PDF 2: SEM AGENDAMENTO (BOTÃO PRETO NOVO COM O TEXTO GIGANTE)
+        // PDF 2: SEM AGENDAMENTO 
         async function exportPDFVazio() {
             const { jsPDF } = window.jspdf; const doc = new jsPDF('landscape');
             const dateParts = selectedDay.split('-');
             const dateObj = new Date(dateParts[0], dateParts[1]-1, dateParts[2]);
             const formattedDate = `DIA ${dateParts[2]}/${dateParts[1]} (${WEEKDAYS[dateObj.getDay()]})`;
 
-            // MESMO CABEÇALHO AZUL CLARO
             doc.setFillColor(218, 232, 252); doc.rect(14, 10, 269, 12, 'F');
             doc.setFontSize(22); doc.setFont(undefined, 'bold'); doc.setTextColor(0,0,0); doc.text('HEMODINÂMICA', 148.5, 19, { align: 'center' });
-            
-            // MESMA DATA AMARELA FORTE
             doc.setFillColor(255, 255, 0); doc.rect(14, 25, 75, 8, 'F');
             doc.setFontSize(10); doc.text(formattedDate, 16, 30.5);
 
             const cols = ['HORÁRIO', 'SALA/RPA', 'PACIENTE', 'DN', 'IDADE', 'CONVÊNIO', 'MÉDICO EXECUTOR', 'ORIGEM', 'PROCEDIMENTO', 'DESTINO', 'OPME', 'OBSERVAÇÃO'];
-            
-            // A LINHA GIGANTE QUE ELA PEDIU COM ESTILO VINCADO E ALTO
             const rows = [[{ content: 'SEM AGENDAMENTO', colSpan: 12, styles: { halign: 'center', valign: 'middle', fontStyle: 'bold', fontSize: 16, textColor: [0, 0, 0], cellPadding: 20 } }]];
 
-            // MESMA GRELHA PRETA E VINCADA
             doc.autoTable({ 
                 startY: 35, head: [cols], body: rows, theme: 'grid', 
                 styles: { fontSize: 7, halign: 'center', textColor: [0, 0, 0], lineWidth: 0.3, lineColor: [0, 0, 0], font: 'helvetica' }, 
@@ -581,11 +544,8 @@
 
         function toggleAdminPanel() { 
             const p = document.getElementById('admin-panel');
-            if(p.classList.contains('editor-closed')) {
-                p.classList.remove('editor-closed'); document.getElementById('overlay').classList.remove('hidden'); loadAdminInfo();
-            } else {
-                p.classList.add('editor-closed'); document.getElementById('overlay').classList.add('hidden');
-            }
+            if(p.classList.contains('editor-closed')) { p.classList.remove('editor-closed'); document.getElementById('overlay').classList.remove('hidden'); loadAdminInfo(); } 
+            else { p.classList.add('editor-closed'); document.getElementById('overlay').classList.add('hidden'); }
         }
 
         async function loadAdminInfo() {
