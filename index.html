@@ -24,6 +24,10 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; height: 100vh; overflow: hidden; }
         
+        /* 🛡️ PROTEÇÃO CONTRA SELEÇÃO E CÓPIA */
+        body { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
+        input, textarea { -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text; }
+
         .screen { display: none; height: 100%; width: 100%; flex-direction: column; }
         .active-screen { display: flex; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
@@ -41,7 +45,7 @@
         .status-bar { display: flex; gap: 4px; padding: 6px 8px; background: #f8fafc; border-top: 1px solid #f1f5f9; margin-top: auto; align-items: center; }
         .status-dot { height: 6px; width: 6px; border-radius: 50%; }
 
-        #editor-panel, #admin-panel { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); border-top-left-radius: 24px; border-bottom-left-radius: 24px; }
+        #editor-panel { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); border-top-left-radius: 24px; border-bottom-left-radius: 24px; }
         .editor-closed { transform: translateX(100%); }
         
         .table-container { overflow-x: auto; border-radius: 12px; border: 1px solid #e2e8f0; background: white; }
@@ -66,6 +70,17 @@
 <body>
 
     <script>
+        // 🛡️ BLOQUEIO BÁSICO (F12)
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.onkeydown = function(e) {
+            if(e.keyCode == 123) { return false; } 
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) { return false; } 
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) { return false; } 
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) { return false; } 
+            if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { return false; } 
+        }
+
+        // --- CONFIGURAÇÃO SUPABASE (O Cofre) ---
         const apiKey = ""; 
         const PROJECT_URL = 'https://njoddjcobyqzaltzbvri.supabase.co'; 
         const PROJECT_KEY = 'sb_publishable_PITGaXHPP28arj3Pam8ryg_PdzjzY4u';
@@ -111,7 +126,7 @@
             </div>
 
             <h1 class="text-3xl font-black text-slate-800 mb-1 tracking-tight">HemoAgenda</h1>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-10">Suite Segura v9.16</p>
+            <p class="text-[10px] font-bold text-emerald-500 uppercase tracking-[0.3em] mb-10">Conexão Restaurada v9.18</p>
             
             <form onsubmit="handleLogin(event)" class="space-y-4 text-left">
                 <div>
@@ -224,14 +239,13 @@
     </div>
 
     <script>
-        // --- LÓGICA v9.16 (ACESSO TOTALMENTE LIBERADO, SEM BLOQUEIOS) ---
+        // --- RESTAURO DA COMUNICAÇÃO (v9.18) ---
         async function handleLogin(e) {
             e.preventDefault();
             const u = document.getElementById('login-user').value.trim().toLowerCase();
             const p = document.getElementById('login-pass').value.trim();
             const msgBox = document.getElementById('login-msg');
             
-            // 🛡️ MANTIDO APENAS O BLOQUEIO DE E-MAIL (Lista VIP)
             const isLeticia = u === 'leticialouis61@gmail.com';
             const isAdminAccount = u === 'jefersondsgomes@gmail.com' || u === 'jefersondsgomes10@gmail.com';
             
@@ -240,11 +254,15 @@
                 return;
             }
 
-            msgBox.innerText = "A entrar...";
+            msgBox.innerText = "A conectar ao servidor...";
+            
             const { data } = await _supabase.from('hemo_users').select('*').eq('email', u).eq('password', p).maybeSingle();
             
             if (data) { 
-                // TUDO REMOVIDO: Sem checagem de hardware, sem erro de PC, sem erro de sessão ativa.
+                // 🔄 VOLTAMOS A DAR O PING DE ACESSO PARA MANTER A LIGAÇÃO VIVA NO BANCO DE DADOS
+                const updates = deviceType === 'desktop' ? { desktop_id: deviceId, desktop_ping: new Date().toISOString() } : { mobile_id: deviceId, mobile_ping: new Date().toISOString() };
+                await _supabase.from('hemo_users').update(updates).eq('email', u);
+                
                 localStorage.setItem('hemo_user', u);
                 currentUser = u; 
                 init();
@@ -254,18 +272,42 @@
         }
 
         async function init() {
-            show('app'); renderCalendar(); await fetchData(); setupRealtime();
+            show('app'); 
+            renderCalendar(); 
+            await fetchData(); 
+            setupRealtime();
+            
+            // 🔄 O "CORAÇÃO" DO SISTEMA FOI RESTAURADO: AVISA O BANCO DE DADOS QUE ELA ESTÁ ONLINE
+            setInterval(async () => { 
+                if(currentUser) {
+                    const ping = deviceType === 'desktop' ? { desktop_ping: new Date().toISOString() } : { mobile_ping: new Date().toISOString() };
+                    await _supabase.from('hemo_users').update(ping).eq('email', currentUser);
+                    fetchData(true);
+                } 
+            }, 30000); 
         }
 
         async function fetchData(silent = false) {
             if (!_supabase || saveTimer || isSaving) return;
             const monthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth()+1).padStart(2,'0')}%`;
-            const { data } = await _supabase.from('hemo_agenda').select('*').eq('user_email', currentUser).like('date_key', monthKey);
-            if (data) { data.forEach(d => monthData[d.date_key] = d); renderCalendar(); }
+            
+            // Tratamento de erro robusto para não falhar silenciosamente
+            const { data, error } = await _supabase.from('hemo_agenda').select('*').eq('user_email', currentUser).like('date_key', monthKey);
+            
+            if (error) {
+                document.getElementById('cloudIcon').className = "fas fa-exclamation-triangle text-red-500";
+                document.getElementById('cloudLabel').innerText = "Erro Servidor";
+            }
+            if (data) { 
+                data.forEach(d => monthData[d.date_key] = d); 
+                renderCalendar(); 
+                document.getElementById('cloudIcon').className = "fas fa-cloud text-emerald-500";
+                document.getElementById('cloudLabel').innerText = "Conectado";
+            }
         }
 
         function setupRealtime() {
-            _supabase.channel('cloud-v9.16').on('postgres_changes', { event: '*', schema: 'public', table: 'hemo_agenda' }, (payload) => {
+            _supabase.channel('cloud-v9.18').on('postgres_changes', { event: '*', schema: 'public', table: 'hemo_agenda' }, (payload) => {
                 if (payload.new.user_email === currentUser) {
                     monthData[payload.new.date_key] = payload.new;
                     renderCalendar();
@@ -377,11 +419,17 @@
                 updated_at: new Date().toISOString()
             };
             const { error } = await _supabase.from('hemo_agenda').upsert(p, { onConflict: 'user_email, date_key' });
-            document.getElementById('cloudIcon').className = error ? "fas fa-exclamation-triangle text-red-500" : "fas fa-cloud text-emerald-500";
-            document.getElementById('cloudLabel').innerText = error ? "Erro!" : "Nuvem OK";
+            
+            if (error) {
+                document.getElementById('cloudIcon').className = "fas fa-exclamation-triangle text-red-500";
+                document.getElementById('cloudLabel').innerText = "Erro ao Salvar!";
+            } else {
+                document.getElementById('cloudIcon').className = "fas fa-cloud text-emerald-500";
+                document.getElementById('cloudLabel').innerText = "Nuvem OK";
+            }
         }
 
-        // --- PDF COM ORDENAÇÃO INTELIGENTE ---
+        // --- PDF COM ORDENAÇÃO INTELIGENTE MANTIDA ---
         async function exportPDF() {
             const { jsPDF } = window.jspdf; const doc = new jsPDF('landscape');
             const data = monthData[selectedDay] || { procedures: [] };
@@ -396,7 +444,7 @@
 
             const cols = ['HORÁRIO', 'SALA/RPA', 'PACIENTE', 'DN', 'IDADE', 'CONVÊNIO', 'MÉDICO EXECUTOR', 'ORIGEM', 'PROCEDIMENTO', 'DESTINO', 'OPME', 'OBSERVAÇÃO'];
             
-            // 🔄 ORDENAÇÃO POR HORÁRIO
+            // ORDENAÇÃO POR HORÁRIO
             let sorted = [...(data.procedures || [])].sort((a, b) => (a.time || '23:59').localeCompare(b.time || '23:59'));
 
             let rows = sorted.length > 0 ? sorted.map(p => [
