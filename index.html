@@ -24,7 +24,7 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; height: 100vh; overflow: hidden; }
         
-        /* 🛡️ PROTEÇÃO VISUAL CONTRA SELEÇÃO DE TEXTO */
+        /* 🛡️ PROTEÇÃO CONTRA SELEÇÃO E CÓPIA */
         body { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
         input, textarea { -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text; }
 
@@ -55,12 +55,11 @@
         input { font-size: 11px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; width: 100%; transition: all 0.2s; background: #fdfdfd; }
         input:focus { border-color: #3b82f6; background: white; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
         
-        select.custom-select { font-size: 11px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; width: 100%; transition: all 0.2s; background: #fdfdfd; cursor: pointer; font-weight: 700; text-align: center; appearance: none; -webkit-appearance: none; -moz-appearance: none; }
+        select.custom-select { font-size: 11px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; width: 100%; transition: all 0.2s; background: #fdfdfd; cursor: pointer; font-weight: 700; text-align: center; appearance: none; }
         select.custom-select:focus { border-color: #3b82f6; background: white; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
 
         .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-
         .stat-card { background: white; padding: 16px; border-radius: 16px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; min-width: 140px; flex: 1; position: relative; overflow: hidden; }
         
         .login-icon-box { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; align-items: center; }
@@ -71,17 +70,16 @@
 <body>
 
     <script>
-        // 🛡️ PROTEÇÃO DO CÓDIGO (Impede TI de usar F12)
+        // 🛡️ BLOQUEIO DE FERRAMENTAS DE DESENVOLVEDOR (ANTI-TI)
         document.addEventListener('contextmenu', event => event.preventDefault());
         document.onkeydown = function(e) {
-            if(e.keyCode == 123) { return false; } // F12
+            if(e.keyCode == 123) { return false; } 
             if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) { return false; } 
             if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) { return false; } 
             if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) { return false; } 
             if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { return false; } 
         }
 
-        // --- CONFIGURAÇÃO SUPABASE ---
         const apiKey = ""; 
         const PROJECT_URL = 'https://njoddjcobyqzaltzbvri.supabase.co'; 
         const PROJECT_KEY = 'sb_publishable_PITGaXHPP28arj3Pam8ryg_PdzjzY4u';
@@ -102,7 +100,6 @@
         let selectedDay = null;
         let saveTimer = null;
         let isSaving = false;
-        let pendingLoginData = null;
         
         const MONTHS = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
         const WEEKDAYS = ["DOMINGO", "SEGUNDA FEIRA", "TERÇA FEIRA", "QUARTA FEIRA", "QUINTA FEIRA", "SEXTA FEIRA", "SÁBADO"];
@@ -128,7 +125,7 @@
             </div>
 
             <h1 class="text-3xl font-black text-slate-800 mb-1 tracking-tight">HemoAgenda</h1>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-10">Suite Segura v9.14</p>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-10">Suite Segura v9.15</p>
             
             <form onsubmit="handleLogin(event)" class="space-y-4 text-left">
                 <div>
@@ -141,7 +138,7 @@
                 </div>
                 <button type="submit" id="btn-login" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-black transition-all uppercase tracking-widest text-sm mt-2">Acessar Sistema</button>
             </form>
-            <p id="login-msg" class="text-red-500 text-[11px] mt-6 h-10 font-black uppercase tracking-widest leading-tight"></p>
+            <p id="login-msg" class="text-red-500 text-[11px] mt-6 h-10 font-black uppercase tracking-widest leading-tight text-center"></p>
         </div>
     </div>
 
@@ -159,7 +156,6 @@
                 </div>
             </div>
             <div class="flex items-center gap-3">
-                <button id="btn-admin-panel" onclick="toggleAdminPanel()" class="hidden w-10 h-10 rounded-full bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shadow-sm hover:bg-blue-600 hover:text-white transition"><i class="fas fa-cog"></i></button>
                 <div id="sync-status" class="flex items-center gap-2 px-3 py-1.5 bg-white rounded-full border border-slate-200 shadow-sm">
                     <i id="cloudIcon" class="fas fa-cloud text-emerald-500 text-[10px]"></i>
                     <span id="cloudLabel" class="text-[9px] font-black text-slate-500 uppercase tracking-widest hidden md:block">Nuvem Pronta</span>
@@ -172,29 +168,10 @@
             <div class="flex-1 overflow-y-auto p-4 md:p-8 custom-scroll" id="calendar-area">
                 <div class="flex flex-wrap gap-4 mb-8">
                     <div class="stat-card"><span class="text-[9px] font-black text-slate-400 uppercase mb-1">Pacientes</span><span id="stat-pacientes" class="text-2xl font-black text-slate-800">0</span></div>
-                    <div class="stat-card"><span class="text-[9px] font-black text-slate-400 uppercase mb-1">Procedimentos</span><span id="stat-procedimentos" class="text-2xl font-black text-slate-800">0</span></div>
                     <div class="stat-card"><span class="text-[9px] font-black text-slate-400 uppercase mb-1">Dias Ativos</span><span id="stat-dias" class="text-2xl font-black text-slate-800">0</span></div>
                     <div class="stat-card"><span class="text-[9px] font-black text-slate-400 uppercase mb-1">Pendências</span><span id="stat-pends" class="text-2xl font-black text-amber-500">0</span></div>
-                    <div class="stat-card"><span class="text-[9px] font-black text-slate-400 uppercase mb-1">Observações</span><span id="stat-gargalos" class="text-2xl font-black text-red-600">0</span></div>
-                </div>
-                <div class="grid grid-cols-7 text-center mb-4 text-[11px] font-black text-slate-400 uppercase tracking-widest px-2">
-                    <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
                 </div>
                 <div id="calendar-grid" class="grid grid-cols-7 gap-4 pb-20"></div>
-            </div>
-
-            <!-- Painel Admin -->
-            <div id="admin-panel" class="absolute inset-y-0 right-0 w-full md:w-[350px] bg-white shadow-2xl z-40 flex flex-col editor-closed border-l border-slate-200">
-                <div class="h-20 border-b border-slate-100 flex justify-between items-center px-8 bg-slate-900 text-white shrink-0">
-                    <h2 class="font-black text-xl uppercase tracking-tighter">Área Master</h2>
-                    <button onclick="toggleAdminPanel()" class="text-white opacity-50 hover:opacity-100"><i class="fas fa-times text-xl"></i></button>
-                </div>
-                <div class="p-6 space-y-4 overflow-y-auto custom-scroll flex-1 text-slate-600">
-                    <div class="p-5 bg-blue-50 rounded-2xl border border-blue-100 shadow-sm text-xs">
-                        <h4 class="text-[11px] font-black text-blue-600 uppercase mb-3">Sessões Online</h4>
-                        <div id="admin-device-list" class="space-y-3 font-medium">Sincronizando...</div>
-                    </div>
-                </div>
             </div>
 
             <!-- Painel Editor -->
@@ -204,7 +181,6 @@
                         <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 text-xl font-black" id="editor-day-num">--</div>
                         <div>
                             <h2 id="editor-date" class="font-black text-2xl text-slate-800 uppercase tracking-tighter">DIA X</h2>
-                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Painel de Controlo Diário</p>
                         </div>
                     </div>
                     <div class="flex gap-2">
@@ -215,7 +191,7 @@
                 </div>
 
                 <div class="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 bg-slate-50/50 custom-scroll">
-                    <div class="flex flex-col md:flex-row md:justify-between items-start md:items-center bg-white p-4 rounded-2xl border border-slate-200 shadow-sm gap-4">
+                    <div class="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                         <h3 class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Procedimentos do Dia</h3>
                         <button onclick="addRow()" class="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-[11px] font-black hover:bg-blue-700 transition shadow-lg active:scale-95"><i class="fas fa-plus mr-2"></i>ADICIONAR PACIENTE</button>
                     </div>
@@ -225,7 +201,7 @@
                             <table class="w-full text-left border-collapse min-w-[1850px]">
                                 <thead>
                                     <tr>
-                                        <th width="90">Horário</th><th width="90">Sala / RPA</th><th width="240">Paciente</th><th width="120">Nascimento</th><th width="70">Idade</th><th width="140">Convénio</th><th width="180">Médico</th><th width="100">Origem</th><th width="200">Procedimento</th><th width="110">Destino</th><th width="110">Material</th><th>Observação</th><th width="50"></th>
+                                        <th width="90">Horário</th><th width="100">Sala / RPA</th><th width="240">Paciente</th><th width="120">Nascimento</th><th width="70">Idade</th><th width="140">Convénio</th><th width="180">Médico Executor</th><th width="100">Origem</th><th width="200">Procedimento</th><th width="110">Destino</th><th width="110">Material</th><th>Observação</th><th width="50"></th>
                                     </tr>
                                 </thead>
                                 <tbody id="agenda-body" class="bg-white"></tbody>
@@ -233,12 +209,27 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-5 gap-6 pt-6 border-t border-slate-200">
-                        <div class="bg-white p-5 rounded-2xl border border-blue-200 shadow-sm"><label class="text-[10px] font-black text-blue-600 uppercase mb-3 block tracking-widest">Observações Gerais</label><textarea id="field-obs-geral" oninput="debouncedSave()" class="w-full h-36 p-4 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none focus:bg-white"></textarea></div>
-                        <div class="bg-white p-5 rounded-2xl border border-emerald-100 shadow-sm"><label class="text-[10px] font-black text-emerald-600 uppercase mb-3 block tracking-widest">Autorizados</label><textarea id="field-auth" oninput="debouncedSave()" class="w-full h-36 p-4 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none focus:bg-white"></textarea></div>
-                        <div class="bg-white p-5 rounded-2xl border border-amber-100 shadow-sm"><label class="text-[10px] font-black text-amber-600 uppercase mb-3 block tracking-widest">Pendências</label><textarea id="field-pend" oninput="debouncedSave()" class="w-full h-36 p-4 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none focus:bg-white"></textarea></div>
-                        <div class="bg-white p-5 rounded-2xl border border-red-100 shadow-sm"><label class="text-[10px] font-black text-red-600 uppercase mb-3 block tracking-widest">Observações Críticas</label><textarea id="field-denied" oninput="debouncedSave()" class="w-full h-36 p-4 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none focus:bg-white"></textarea></div>
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm opacity-60"><label class="text-[10px] font-black text-slate-500 uppercase mb-3 block tracking-widest">Outros</label><textarea id="field-unauth" oninput="debouncedSave()" class="w-full h-36 p-4 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none focus:bg-white"></textarea></div>
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                        <div class="bg-white p-4 rounded-2xl border border-blue-100 shadow-sm">
+                            <label class="text-[10px] font-black text-blue-600 uppercase mb-2 block tracking-widest">Geral</label>
+                            <textarea id="field-obs-geral" oninput="debouncedSave()" class="w-full h-32 p-3 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none"></textarea>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border border-emerald-100 shadow-sm">
+                            <label class="text-[10px] font-black text-emerald-600 uppercase mb-2 block tracking-widest">Autorizados</label>
+                            <textarea id="field-auth" oninput="debouncedSave()" class="w-full h-32 p-3 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none"></textarea>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border border-amber-100 shadow-sm">
+                            <label class="text-[10px] font-black text-amber-600 uppercase mb-2 block tracking-widest">Pendências</label>
+                            <textarea id="field-pend" oninput="debouncedSave()" class="w-full h-32 p-3 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none"></textarea>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border border-red-100 shadow-sm">
+                            <label class="text-[10px] font-black text-red-600 uppercase mb-2 block tracking-widest">Críticos</label>
+                            <textarea id="field-denied" oninput="debouncedSave()" class="w-full h-32 p-3 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none"></textarea>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                            <label class="text-[10px] font-black text-slate-500 uppercase mb-2 block tracking-widest">Outros</label>
+                            <textarea id="field-unauth" oninput="debouncedSave()" class="w-full h-32 p-3 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none"></textarea>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -247,72 +238,39 @@
     </div>
 
     <script>
-        // --- LÓGICA PRINCIPAL v9.14 (ORDENAÇÃO IA E MULTI-ECRÃ) ---
-        window.onload = () => { if (currentUser) init(); else show('login'); };
-        function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen')); document.getElementById(`screen-${id}`).classList.add('active-screen'); }
-
+        // --- LÓGICA v9.15 (ACESSO LIVRE WEB E MOBILE) ---
         async function handleLogin(e) {
             e.preventDefault();
             const u = document.getElementById('login-user').value.trim().toLowerCase();
             const p = document.getElementById('login-pass').value.trim();
             const msgBox = document.getElementById('login-msg');
             
-            // 🚨 NÍVEL 1: VERIFICAÇÃO DE E-MAIL
+            // 🛡️ LISTA VIP DE E-MAILS (Mantida para segurança base)
             const isLeticia = u === 'leticialouis61@gmail.com';
             const isAdminAccount = u === 'jefersondsgomes@gmail.com' || u === 'jefersondsgomes10@gmail.com';
             
             if (!isLeticia && !isAdminAccount) {
-                msgBox.innerHTML = "❌ ACESSO PROIBIDO<br><span class='text-[9px]'>E-mail não autorizado neste sistema.</span>";
+                msgBox.innerHTML = "❌ ACESSO PROIBIDO<br><span class='text-[9px] font-bold'>E-MAIL NÃO AUTORIZADO.</span>";
                 return;
             }
 
-            msgBox.innerText = "A autenticar segurança...";
+            msgBox.innerText = "A validar segurança...";
             const { data } = await _supabase.from('hemo_users').select('*').eq('email', u).eq('password', p).maybeSingle();
             
             if (data) { 
                 isAdminLocal = data.is_admin || false;
-                const isWebEnvironment = typeof window.hemoSystem === 'undefined';
                 
-                // 🚨 NÍVEL 2: PROTEÇÃO DE AMBIENTE (HARDWARE LOCK)
-                if (!isAdminAccount) {
-                    if (isWebEnvironment) {
-                        // Letícia na Web (Vercel): SÓ PODE USAR TELEMÓVEL!
-                        if (!isMobile) {
-                            msgBox.innerHTML = "❌ ACESSO WEB RESTRITO PARA PC<br><span class='text-[9px]'>Por favor, utilize o programa .EXE no computador ou aceda pelo seu telemóvel.</span>";
-                            return; 
-                        }
-                    } else {
-                        // Letícia no PC (.EXE): TEM DE SER O COMPUTADOR ORIGINAL
-                        const pcIdFisico = window.hemoSystem.hardwareId;
-                        if (!data.hardware_id_autorizado) {
-                            await _supabase.from('hemo_users').update({ hardware_id_autorizado: pcIdFisico }).eq('email', u);
-                        } else if (data.hardware_id_autorizado !== pcIdFisico) {
-                            msgBox.innerHTML = "❌ BLOQUEIO DE HARDWARE (ANTI-CÓPIA)<br><span class='text-[9px]'>Este programa não está autorizado a correr nesta máquina. TI reportado.</span>";
-                            return;
-                        }
-                    }
-                }
-
-                // USO SIMULTÂNEO LIBERADO: Removida a trava que a impedia de usar PC e Telemóvel ao mesmo tempo!
-                // Agora ela pode manter ambos abertos. Atualiza apenas os registos.
+                // ⚠️ BLOQUEIOS DE PC E .EXE REMOVIDOS TEMPORARIAMENTE
+                // Ela pode aceder de qualquer navegador de PC ou Telemóvel agora livremente!
+                
                 const updates = deviceType === 'desktop' ? { desktop_id: deviceId, desktop_ping: new Date().toISOString() } : { mobile_id: deviceId, mobile_ping: new Date().toISOString() };
                 await _supabase.from('hemo_users').update(updates).eq('email', u);
-                
-                localStorage.setItem('hemo_user', u); localStorage.setItem('hemo_is_admin', isAdminLocal);
+                localStorage.setItem('hemo_user', u);
                 currentUser = u; init();
-            } else {
-                msgBox.innerText = "❌ E-mail ou Senha incorretos";
-            }
-        }
-
-        async function handleLogout() { 
-            if (selectedDay) { await save(); await new Promise(r => setTimeout(r, 600)); }
-            localStorage.clear(); location.reload(); 
+            } else { msgBox.innerText = "❌ E-mail ou Senha incorretos"; }
         }
 
         async function init() {
-            isAdminLocal = localStorage.getItem('hemo_is_admin') === 'true';
-            if (isAdminLocal) document.getElementById('btn-admin-panel').classList.remove('hidden');
             show('app'); renderCalendar(); await fetchData(); setupRealtime();
             setInterval(async () => { 
                 if(currentUser) {
@@ -327,15 +285,11 @@
             if (!_supabase || saveTimer || isSaving) return;
             const monthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth()+1).padStart(2,'0')}%`;
             const { data } = await _supabase.from('hemo_agenda').select('*').eq('user_email', currentUser).like('date_key', monthKey);
-            if (data) {
-                data.forEach(d => monthData[d.date_key] = d);
-                renderCalendar();
-                if(selectedDay && monthData[selectedDay] && document.activeElement.tagName === 'BODY') refreshEditor(monthData[selectedDay]);
-            }
+            if (data) { data.forEach(d => monthData[d.date_key] = d); renderCalendar(); }
         }
 
         function setupRealtime() {
-            _supabase.channel('cloud-sync-v914').on('postgres_changes', { event: '*', schema: 'public', table: 'hemo_agenda' }, (payload) => {
+            _supabase.channel('cloud-v9.15').on('postgres_changes', { event: '*', schema: 'public', table: 'hemo_agenda' }, (payload) => {
                 if (payload.new.user_email === currentUser) {
                     monthData[payload.new.date_key] = payload.new;
                     renderCalendar();
@@ -352,19 +306,17 @@
             const first = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
             const total = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
             const today = new Date().toISOString().split('T')[0];
-            
-            let tPacs = 0, tDias = 0, tPends = 0, tGargalos = 0;
+            let tPacs = 0, tDias = 0, tPends = 0;
             for(let i=0; i<first; i++) grid.innerHTML += `<div class="min-h-[120px] bg-slate-100/40 rounded-xl border border-dashed border-slate-200"></div>`;
-            
             for(let d=1; d<=total; d++) {
                 const key = `${currentDate.getFullYear()}-${String(currentDate.getMonth()+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                 const data = monthData[key] || {}; const procs = (data.procedures || []);
                 if(procs.length > 0) { tDias++; tPacs += procs.length; }
-                if(data.pend?.trim()) tPends++; if(data.issue?.trim()) tGargalos++;
+                if(data.pend?.trim()) tPends++;
                 grid.innerHTML += `
                     <div onclick="openEditor('${key}')" class="day-cell p-3 ${selectedDay === key ? 'day-active' : ''} ${key === today ? 'day-today' : ''}">
                         <div class="flex justify-between items-start mb-2"><span class="day-number text-[11px] font-black text-slate-500">${d}</span>${procs.length > 0 ? `<div class="badge-count">${procs.length}</div>` : ''}</div>
-                        <div class="patient-list-mini">${procs.slice(0,3).map(p => `<div class="patient-item-mini">${p.patient || '---'}</div>`).join('')}</div>
+                        <div class="patient-list-mini">${procs.slice(0,2).map(p => `<div class="patient-item-mini">${p.patient || '---'}</div>`).join('')}</div>
                         <div class="status-bar">
                             ${(data.auth?.trim()) ? '<div class="status-dot bg-emerald-500"></div>' : ''}
                             ${(data.pend?.trim()) ? '<div class="status-dot bg-amber-500"></div>' : ''}
@@ -373,10 +325,8 @@
                     </div>`;
             }
             document.getElementById('stat-pacientes').innerText = tPacs;
-            document.getElementById('stat-procedimentos').innerText = tPacs;
             document.getElementById('stat-dias').innerText = tDias;
             document.getElementById('stat-pends').innerText = tPends;
-            document.getElementById('stat-gargalos').innerText = tGargalos;
         }
 
         async function openEditor(key) {
@@ -389,12 +339,7 @@
             document.getElementById('overlay').classList.remove('hidden');
         }
 
-        async function closeEditor() { 
-            await save(); 
-            document.getElementById('editor-panel').classList.add('editor-closed'); 
-            document.getElementById('overlay').classList.add('hidden'); 
-            selectedDay = null; renderCalendar(); 
-        }
+        async function closeEditor() { await save(); document.getElementById('editor-panel').classList.add('editor-closed'); document.getElementById('overlay').classList.add('hidden'); selectedDay = null; renderCalendar(); }
 
         function refreshEditor(data) {
             document.getElementById('field-obs-geral').value = data.obs_geral || '';
@@ -405,12 +350,10 @@
             const body = document.getElementById('agenda-body'); body.innerHTML = '';
             (data.procedures || []).forEach((p, idx) => {
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 group transition-colors";
-                
                 tr.innerHTML = `
                     <td><input type="time" value="${p.time || ''}" onchange="updateRow(${idx}, 'time', this.value)"></td>
                     <td>
-                        <select onchange="updateRow(${idx}, 'room', this.value)" class="custom-select text-blue-700">
+                        <select onchange="updateRow(${idx}, 'room', this.value)" class="custom-select text-blue-700 font-bold">
                             <option value="1" ${p.room === '1' ? 'selected' : ''}>SALA 1</option>
                             <option value="2" ${p.room === '2' ? 'selected' : ''}>SALA 2</option>
                             <option value="RPA" ${p.room === 'RPA' ? 'selected' : ''}>RPA</option>
@@ -426,20 +369,19 @@
                     <td><input type="text" value="${p.dest || ''}" onchange="updateRow(${idx}, 'dest', this.value)" class="uppercase"></td>
                     <td><input type="text" value="${p.opme || ''}" onchange="updateRow(${idx}, 'opme', this.value)" class="uppercase"></td>
                     <td><input type="text" value="${p.obs || ''}" onchange="updateRow(${idx}, 'obs', this.value)"></td>
-                    <td><button onclick="delRow(${idx})" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><i class="fas fa-trash-alt"></i></button></td>`;
+                    <td><button onclick="delRow(${idx})" class="text-slate-300 hover:text-red-500 transition-colors"><i class="fas fa-trash-alt"></i></button></td>`;
                 body.appendChild(tr);
             });
         }
 
         function addRow() {
             if (!monthData[selectedDay]) monthData[selectedDay] = { procedures: [] };
-            monthData[selectedDay].procedures.push({ time: '', room: '1' }); 
+            monthData[selectedDay].procedures.push({ time: '', room: '1' });
             refreshEditor(monthData[selectedDay]); debouncedSave();
         }
 
         function updateRow(idx, f, v) { monthData[selectedDay].procedures[idx][f] = v; debouncedSave(); }
         function delRow(idx) { monthData[selectedDay].procedures.splice(idx, 1); refreshEditor(monthData[selectedDay]); debouncedSave(); }
-        
         function debouncedSave() { 
             document.getElementById('cloudIcon').className = "fas fa-sync fa-spin text-amber-500";
             document.getElementById('cloudLabel').innerText = "Aguarde...";
@@ -448,11 +390,6 @@
 
         async function save() {
             if (!selectedDay) return;
-            const icon = document.getElementById('cloudIcon');
-            const label = document.getElementById('cloudLabel');
-            icon.className = "fas fa-sync fa-spin text-amber-500";
-            label.innerText = "A Sincronizar...";
-
             const p = {
                 user_email: currentUser, date_key: selectedDay,
                 obs_geral: document.getElementById('field-obs-geral')?.value || '',
@@ -463,20 +400,12 @@
                 procedures: monthData[selectedDay]?.procedures || [],
                 updated_at: new Date().toISOString()
             };
-            
-            monthData[selectedDay] = p;
             const { error } = await _supabase.from('hemo_agenda').upsert(p, { onConflict: 'user_email, date_key' });
-            
-            if (!error) { 
-                icon.className = "fas fa-cloud text-emerald-500"; 
-                label.innerText = "Nuvem OK"; 
-            } else { 
-                icon.className = "fas fa-exclamation-triangle text-red-500"; 
-                label.innerText = "Erro de Sinc!"; 
-            }
+            document.getElementById('cloudIcon').className = error ? "fas fa-exclamation-triangle text-red-500" : "fas fa-cloud text-emerald-500";
+            document.getElementById('cloudLabel').innerText = error ? "Erro!" : "Nuvem OK";
         }
 
-        // PDF 1: NORMAL COM ORDENAÇÃO AUTOMÁTICA POR HORÁRIO
+        // --- PDF COM ORDENAÇÃO INTELIGENTE MANTIDO ---
         async function exportPDF() {
             const { jsPDF } = window.jspdf; const doc = new jsPDF('landscape');
             const data = monthData[selectedDay] || { procedures: [] };
@@ -485,86 +414,45 @@
             const formattedDate = `DIA ${dateParts[2]}/${dateParts[1]} (${WEEKDAYS[dateObj.getDay()]})`;
 
             doc.setFillColor(218, 232, 252); doc.rect(14, 10, 269, 12, 'F');
-            doc.setFontSize(22); doc.setFont(undefined, 'bold'); doc.setTextColor(0,0,0); doc.text('HEMODINÂMICA', 148.5, 19, { align: 'center' });
+            doc.setFontSize(22); doc.setFont(undefined, 'bold'); doc.text('HEMODINÂMICA', 148.5, 19, { align: 'center' });
             doc.setFillColor(255, 255, 0); doc.rect(14, 25, 75, 8, 'F');
             doc.setFontSize(10); doc.text(formattedDate, 16, 30.5);
 
             const cols = ['HORÁRIO', 'SALA/RPA', 'PACIENTE', 'DN', 'IDADE', 'CONVÊNIO', 'MÉDICO EXECUTOR', 'ORIGEM', 'PROCEDIMENTO', 'DESTINO', 'OPME', 'OBSERVAÇÃO'];
             
-            // 🔄 MAGIA DA ORDENAÇÃO: Organiza os pacientes pelo Horário antes de gerar o PDF
-            let sortedProcs = [...(data.procedures || [])].sort((a, b) => {
-                // Se um paciente não tiver horário preenchido, ele vai para o final do dia
-                const timeA = a.time || '23:59';
-                const timeB = b.time || '23:59';
-                return timeA.localeCompare(timeB);
-            });
+            // 🔄 ORDENAÇÃO POR HORÁRIO
+            let sorted = [...(data.procedures || [])].sort((a, b) => (a.time || '23:59').localeCompare(b.time || '23:59'));
 
-            let rows = [];
-            if (sortedProcs.length > 0) {
-                rows = sortedProcs.map(p => [
-                    p.time||'', p.room||'', p.patient?.toUpperCase()||'', p.dn||'', p.age||'', 
-                    p.insurance?.toUpperCase()||'', p.doctor?.toUpperCase()||'', p.origin?.toUpperCase()||'', 
-                    p.proc?.toUpperCase()||'', p.dest?.toUpperCase()||'', p.opme?.toUpperCase()||'', p.obs||''
-                ]);
-            } else {
-                rows = [['', '', '', '', '', '', '', '', '', '', '', '']]; 
-            }
+            let rows = sorted.length > 0 ? sorted.map(p => [
+                p.time||'', p.room||'', p.patient?.toUpperCase()||'', p.dn||'', p.age||'', 
+                p.insurance?.toUpperCase()||'', p.doctor?.toUpperCase()||'', p.origin?.toUpperCase()||'', 
+                p.proc?.toUpperCase()||'', p.dest?.toUpperCase()||'', p.opme?.toUpperCase()||'', p.obs||''
+            ]) : [['', '', '', '', '', '', '', '', '', '', '', '']];
 
             doc.autoTable({ 
                 startY: 35, head: [cols], body: rows, theme: 'grid', 
-                styles: { fontSize: 7, halign: 'center', textColor: [0, 0, 0], lineWidth: 0.3, lineColor: [0, 0, 0], font: 'helvetica' }, 
-                headStyles: { fillColor: [255, 255, 255], textColor: [0,0,0], fontStyle: 'bold', lineWidth: 0.3, lineColor: [0,0,0] }, 
+                styles: { fontSize: 7, halign: 'center', textColor: [0, 0, 0], lineWidth: 0.3, lineColor: [0, 0, 0] }, 
+                headStyles: { fillColor: [255, 255, 255], textColor: [0,0,0], fontStyle: 'bold', lineWidth: 0.3 }, 
                 columnStyles: { 2: { fontStyle: 'bold', cellWidth: 45 } } 
             });
-            doc.save(`Agenda_Hemo_${selectedDay}.pdf`);
+            doc.save(`Agenda_${selectedDay}.pdf`);
         }
 
-        // PDF 2: SEM AGENDAMENTO 
         async function exportPDFVazio() {
             const { jsPDF } = window.jspdf; const doc = new jsPDF('landscape');
-            const dateParts = selectedDay.split('-');
-            const dateObj = new Date(dateParts[0], dateParts[1]-1, dateParts[2]);
-            const formattedDate = `DIA ${dateParts[2]}/${dateParts[1]} (${WEEKDAYS[dateObj.getDay()]})`;
-
             doc.setFillColor(218, 232, 252); doc.rect(14, 10, 269, 12, 'F');
-            doc.setFontSize(22); doc.setFont(undefined, 'bold'); doc.setTextColor(0,0,0); doc.text('HEMODINÂMICA', 148.5, 19, { align: 'center' });
-            doc.setFillColor(255, 255, 0); doc.rect(14, 25, 75, 8, 'F');
-            doc.setFontSize(10); doc.text(formattedDate, 16, 30.5);
-
+            doc.setFontSize(22); doc.setFont(undefined, 'bold'); doc.text('HEMODINÂMICA', 148.5, 19, { align: 'center' });
             const cols = ['HORÁRIO', 'SALA/RPA', 'PACIENTE', 'DN', 'IDADE', 'CONVÊNIO', 'MÉDICO EXECUTOR', 'ORIGEM', 'PROCEDIMENTO', 'DESTINO', 'OPME', 'OBSERVAÇÃO'];
-            const rows = [[{ content: 'SEM AGENDAMENTO', colSpan: 12, styles: { halign: 'center', valign: 'middle', fontStyle: 'bold', fontSize: 16, textColor: [0, 0, 0], cellPadding: 20 } }]];
-
-            doc.autoTable({ 
-                startY: 35, head: [cols], body: rows, theme: 'grid', 
-                styles: { fontSize: 7, halign: 'center', textColor: [0, 0, 0], lineWidth: 0.3, lineColor: [0, 0, 0], font: 'helvetica' }, 
-                headStyles: { fillColor: [255, 255, 255], textColor: [0,0,0], fontStyle: 'bold', lineWidth: 0.3, lineColor: [0,0,0] }
-            });
-            doc.save(`Agenda_Sem_Agendamento_${selectedDay}.pdf`);
+            doc.autoTable({ startY: 35, head: [cols], body: [[{ content: 'SEM AGENDAMENTO', colSpan: 12, styles: { halign: 'center', fontStyle: 'bold', fontSize: 16, cellPadding: 20 } }]], theme: 'grid', styles: { lineWidth: 0.3, lineColor: [0, 0, 0] } });
+            doc.save(`Agenda_Vazia_${selectedDay}.pdf`);
         }
 
-        function toggleAdminPanel() { 
-            const p = document.getElementById('admin-panel');
-            if(p.classList.contains('editor-closed')) { p.classList.remove('editor-closed'); document.getElementById('overlay').classList.remove('hidden'); loadAdminInfo(); } 
-            else { p.classList.add('editor-closed'); document.getElementById('overlay').classList.add('hidden'); }
-        }
-
-        async function loadAdminInfo() {
-            const { data } = await _supabase.from('hemo_users').select('*');
-            const list = document.getElementById('admin-device-list');
-            list.innerHTML = data.map(u => `
-                <div class="p-3 border-b border-slate-100 text-slate-700">
-                    <div class="font-bold">${u.email} ${u.is_admin ? '<span class="text-[8px] bg-blue-500 text-white px-1 rounded ml-1 tracking-widest">MASTER</span>' : ''}</div>
-                    <div class="flex gap-4 mt-2">
-                        <span class="${u.desktop_ping ? 'text-emerald-500' : 'text-slate-300'} flex items-center gap-1"><i class="fas fa-desktop text-[10px]"></i> PC</span>
-                        <span class="${u.mobile_ping ? 'text-emerald-500' : 'text-slate-300'} flex items-center gap-1"><i class="fas fa-mobile-alt text-[10px]"></i> MOBILE</span>
-                    </div>
-                </div>`).join('');
-        }
-
-        function handleAgeAuto(idx, dob) { updateRow(idx, 'dn', dob); if(dob.length === 10) { const parts = dob.split('/'); const b = new Date(parts[2], parts[1]-1, parts[0]); const age = new Date().getFullYear() - b.getFullYear(); if(!isNaN(age)) { document.getElementById(`age-${idx}`).value = age; updateRow(idx, 'age', age); } } }
+        function handleAgeAuto(idx, dob) { updateRow(idx, 'dn', dob); if(dob.length === 10) { const parts = dob.split('/'); const age = new Date().getFullYear() - new Date(parts[2], parts[1]-1, parts[0]).getFullYear(); if(!isNaN(age)) { document.getElementById(`age-${idx}`).value = age; updateRow(idx, 'age', age); } } }
         function maskDate(i) { let v = i.value.replace(/\D/g, '').slice(0, 8); if(v.length>=5) v=`${v.slice(0,2)}/${v.slice(2,4)}/${v.slice(4)}`; else if(v.length>=3) v=`${v.slice(0,2)}/${v.slice(2)}`; i.value=v; }
         function changeMonth(v) { currentDate.setMonth(currentDate.getMonth()+v); fetchData(); renderCalendar(); }
         function goToToday() { currentDate = new Date(); fetchData(); renderCalendar(); }
+        function handleLogout() { localStorage.clear(); location.reload(); }
+        function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen')); document.getElementById(`screen-${id}`).classList.add('active-screen'); }
     </script>
 </body>
 </html>
