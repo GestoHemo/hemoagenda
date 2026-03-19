@@ -58,8 +58,8 @@
         select.custom-select { font-size: 11px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; width: 100%; transition: all 0.2s; background: #fdfdfd; cursor: pointer; font-weight: 700; text-align: center; appearance: none; }
         select.custom-select:focus { border-color: #3b82f6; background: white; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
 
-        /* ADICIONADO: Estilo para campos bloqueados no modo espelho */
-        input:disabled, textarea:disabled, select:disabled { background: #f1f5f9; cursor: not-allowed; color: #64748b; opacity: 0.8; }
+        /* 🛡️ MODO ESPELHO: Aplica o estilo de bloqueado a todos os campos visualmente */
+        input:disabled, textarea:disabled, select:disabled { background: #f1f5f9; cursor: not-allowed; color: #64748b; opacity: 0.8; border-color: #e2e8f0; }
 
         .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -92,7 +92,7 @@
             </div>
 
             <h1 class="text-3xl font-black text-slate-800 mb-1 tracking-tight">HemoAgenda</h1>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-10">Suite Segura v9.19</p>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-10">Suite Segura v9.20</p>
             
             <form onsubmit="handleLogin(event)" class="space-y-4 text-left">
                 <div>
@@ -123,7 +123,7 @@
                 </div>
             </div>
             <div class="flex items-center gap-3">
-                <!-- ADICIONADO: Etiqueta do Visualizador -->
+                <!-- ETIQUETA MODO ESPELHO (Invisível por Padrão) -->
                 <div id="viewer-badge" class="hidden px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-full font-black text-[9px] uppercase tracking-widest border border-indigo-200" style="display: none;">
                     <i class="fas fa-eye mr-1"></i> Modo Visualização
                 </div>
@@ -184,6 +184,7 @@
                         <div class="bg-white p-4 rounded-2xl border border-blue-100 shadow-sm flex flex-col h-full">
                             <div class="flex justify-between items-center mb-2">
                                 <label class="text-[10px] font-black text-blue-600 uppercase tracking-widest">Geral</label>
+                                <button onclick="clearField(event, 'field-obs-geral')" class="btn-clear text-[9px] font-black text-blue-400 hover:text-blue-700 transition-colors flex items-center gap-1"><i class="fas fa-eraser"></i> LIMPAR</button>
                             </div>
                             <textarea id="field-obs-geral" oninput="debouncedSave()" class="w-full h-28 p-3 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none"></textarea>
                         </div>
@@ -191,6 +192,7 @@
                         <div class="bg-white p-4 rounded-2xl border border-emerald-100 shadow-sm flex flex-col h-full">
                             <div class="flex justify-between items-center mb-2">
                                 <label class="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Autorizados</label>
+                                <button onclick="clearField(event, 'field-auth')" class="btn-clear text-[9px] font-black text-emerald-400 hover:text-emerald-700 transition-colors flex items-center gap-1"><i class="fas fa-eraser"></i> LIMPAR</button>
                             </div>
                             <textarea id="field-auth" oninput="debouncedSave()" class="w-full h-28 p-3 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none"></textarea>
                         </div>
@@ -198,6 +200,7 @@
                         <div class="bg-white p-4 rounded-2xl border border-amber-100 shadow-sm flex flex-col h-full">
                             <div class="flex justify-between items-center mb-2">
                                 <label class="text-[10px] font-black text-amber-600 uppercase tracking-widest">Pendências</label>
+                                <button onclick="clearField(event, 'field-pend')" class="btn-clear text-[9px] font-black text-amber-400 hover:text-amber-700 transition-colors flex items-center gap-1"><i class="fas fa-eraser"></i> LIMPAR</button>
                             </div>
                             <textarea id="field-pend" oninput="debouncedSave()" class="w-full h-28 p-3 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none"></textarea>
                         </div>
@@ -205,15 +208,26 @@
                         <div class="bg-white p-4 rounded-2xl border border-red-100 shadow-sm flex flex-col h-full">
                             <div class="flex justify-between items-center mb-2">
                                 <label class="text-[10px] font-black text-red-600 uppercase tracking-widest">Críticos</label>
+                                <button onclick="clearField(event, 'field-denied')" class="btn-clear text-[9px] font-black text-red-400 hover:text-red-700 transition-colors flex items-center gap-1"><i class="fas fa-eraser"></i> LIMPAR</button>
                             </div>
                             <textarea id="field-denied" oninput="debouncedSave()" class="w-full h-28 p-3 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none"></textarea>
                         </div>
                         
-                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col h-full">
+                        <!-- 5. CAIXA DE TAREFAS (Substitui o antigo 'Outros') -->
+                        <div class="bg-white p-4 rounded-2xl border border-indigo-100 shadow-sm flex flex-col h-full">
                             <div class="flex justify-between items-center mb-2">
-                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Outros</label>
+                                <label class="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Tarefas Diárias</label>
+                                <button onclick="clearTasks(event)" class="btn-clear text-[9px] font-black text-indigo-400 hover:text-indigo-700 transition-colors flex items-center gap-1"><i class="fas fa-eraser"></i> LIMPAR TUDO</button>
                             </div>
-                            <textarea id="field-unauth" oninput="debouncedSave()" class="w-full h-28 p-3 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none"></textarea>
+                            <div class="flex flex-col h-28">
+                                <div class="flex gap-2 mb-2 shrink-0" id="add-task-box">
+                                    <input type="text" id="new-task-input" placeholder="Adicionar nova tarefa..." class="text-[11px] p-2 flex-1 border border-slate-200 rounded-lg bg-slate-50 outline-none focus:bg-white focus:border-indigo-400 transition-colors" onkeypress="if(event.key === 'Enter') addTask()">
+                                    <button onclick="addTask()" class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg text-xs font-black hover:bg-indigo-600 hover:text-white transition-all shadow-sm"><i class="fas fa-plus"></i></button>
+                                </div>
+                                <div id="task-list" class="flex-1 overflow-y-auto custom-scroll space-y-1.5 pr-1 pb-1">
+                                    <!-- As tarefas irão aparecer aqui -->
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -222,7 +236,7 @@
         </div>
     </div>
 
-    <!-- TODOS OS SCRIPTS UNIFICADOS NUM SÓ BLOCO -->
+    <!-- TUDO NUM SÓ SCRIPT FINAL PARA EVITAR ERROS E PARAGENS -->
     <script>
         // 🛡️ BLOQUEIO DE FERRAMENTAS DE DESENVOLVEDOR (ANTI-TI)
         document.addEventListener('contextmenu', event => event.preventDefault());
@@ -234,6 +248,7 @@
             if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { return false; } 
         }
 
+        // --- CONFIGURAÇÃO SUPABASE ---
         const apiKey = ""; 
         const PROJECT_URL = 'https://njoddjcobyqzaltzbvri.supabase.co'; 
         const PROJECT_KEY = 'sb_publishable_PITGaXHPP28arj3Pam8ryg_PdzjzY4u';
@@ -250,7 +265,7 @@
         let isAdminLocal = localStorage.getItem('hemo_is_admin') === 'true';
         let currentUser = localStorage.getItem('hemo_user');
         
-        // ADICIONADO: Variáveis do Espelho
+        // MODO ESPELHO: Variáveis de Leitura
         let isReadOnly = false;
         let targetDataEmail = '';
 
@@ -263,6 +278,7 @@
         const MONTHS = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
         const WEEKDAYS = ["DOMINGO", "SEGUNDA FEIRA", "TERÇA FEIRA", "QUARTA FEIRA", "QUINTA FEIRA", "SEXTA FEIRA", "SÁBADO"];
 
+        // O AUTO-LOGIN CONTINUA AQUI PARA A LETICIA NÃO TER QUE METER A SENHA TODAS AS VEZES
         window.onload = () => { if (currentUser) init(); else show('login'); };
         
         function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen')); document.getElementById(`screen-${id}`).classList.add('active-screen'); }
@@ -279,7 +295,7 @@
             const p = document.getElementById('login-pass').value.trim();
             const msgBox = document.getElementById('login-msg');
             
-            // ADICIONADO: Email da equipa na lista de autorizados
+            // 🛡️ LISTA VIP ATUALIZADA: Inclui Letícia, Admin e Equipa
             const isLeticia = u === 'leticialouis61@gmail.com';
             const isAdminAccount = u === 'jefersondsgomes@gmail.com' || u === 'jefersondsgomes10@gmail.com';
             const isViewerAccount = u === 'equipe@hemoagenda.com';
@@ -302,19 +318,24 @@
         }
 
         async function init() {
-            // ADICIONADO: Lógica de Modo Espelho
+            // MODO ESPELHO: Aplicação de restrições de visualização
             if(currentUser === 'equipe@hemoagenda.com') {
                 isReadOnly = true;
-                targetDataEmail = 'leticialouis61@gmail.com';
+                targetDataEmail = 'leticialouis61@gmail.com'; // O sistema puxa os dados da Letícia
                 
                 const badge = document.getElementById('viewer-badge');
                 if(badge) badge.style.display = 'block';
                 
                 const btnAdd = document.getElementById('btn-add-patient');
                 if(btnAdd) btnAdd.style.display = 'none';
+                
+                document.querySelectorAll('.btn-clear').forEach(b => b.style.display = 'none');
+                
+                const taskBox = document.getElementById('add-task-box');
+                if(taskBox) taskBox.style.display = 'none';
             } else {
                 isReadOnly = false;
-                targetDataEmail = currentUser;
+                targetDataEmail = currentUser; // Utilizador normal puxa os seus próprios dados
             }
 
             show('app'); renderCalendar(); await fetchData(); setupRealtime();
@@ -323,13 +344,15 @@
         async function fetchData(silent = false) {
             if (!_supabase || saveTimer || isSaving) return;
             const monthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth()+1).padStart(2,'0')}%`;
-            // Alterado de currentUser para targetDataEmail
+            // MODO ESPELHO: Usa targetDataEmail para buscar as informações certas
             const { data } = await _supabase.from('hemo_agenda').select('*').eq('user_email', targetDataEmail).like('date_key', monthKey);
             if (data) { data.forEach(d => monthData[d.date_key] = d); renderCalendar(); }
         }
 
         function setupRealtime() {
-            _supabase.channel('cloud-v9.19').on('postgres_changes', { event: '*', schema: 'public', table: 'hemo_agenda' }, (payload) => {
+            // CANAL DA NUVEM RESTAURADO: cloud-sync-v97 (Exatamente como pediu para não perder a sincronização)
+            _supabase.channel('cloud-sync-v97').on('postgres_changes', { event: '*', schema: 'public', table: 'hemo_agenda' }, (payload) => {
+                // MODO ESPELHO: Escuta o targetDataEmail em vez do seu próprio
                 if (payload.new.user_email === targetDataEmail) {
                     monthData[payload.new.date_key] = payload.new;
                     renderCalendar();
@@ -370,7 +393,7 @@
         }
 
         async function openEditor(key) {
-            // ADICIONADO: !isReadOnly para evitar gravar
+            // MODO ESPELHO: Se for visualizador (!isReadOnly), não tenta gravar no banco ao mudar de dia
             if (selectedDay && selectedDay !== key && !isReadOnly) await save();
             selectedDay = key; const data = monthData[key] || { procedures: [] };
             refreshEditor(data);
@@ -381,11 +404,11 @@
         }
 
         async function closeEditor() { 
+            // MODO ESPELHO: Se for visualizador, fecha a tela sem tentar gravar
             if(!isReadOnly) await save(); 
             document.getElementById('editor-panel').classList.add('editor-closed'); 
             document.getElementById('overlay').classList.add('hidden'); 
-            selectedDay = null; 
-            renderCalendar(); 
+            selectedDay = null; renderCalendar(); 
         }
 
         function refreshEditor(data) {
@@ -394,11 +417,8 @@
             document.getElementById('field-pend').value = data.pend || '';
             document.getElementById('field-denied').value = data.issue || ''; 
             
-            const fieldUnauth = document.getElementById('field-unauth');
-            if (fieldUnauth) fieldUnauth.value = data.unauth || '';
-            
-            // ADICIONADO: Desativa as textareas se estiver no modo leitura
-            const fields = ['field-obs-geral', 'field-auth', 'field-pend', 'field-denied', 'field-unauth'];
+            // MODO ESPELHO: Desativa as caixas de notas para não edição
+            const fields = ['field-obs-geral', 'field-auth', 'field-pend', 'field-denied', 'new-task-input'];
             fields.forEach(f => {
                 const el = document.getElementById(f);
                 if (el) {
@@ -407,10 +427,12 @@
                 }
             });
 
+            renderTasks();
+
             const body = document.getElementById('agenda-body'); body.innerHTML = '';
             (data.procedures || []).forEach((p, idx) => {
                 const tr = document.createElement('tr');
-                // ADICIONADO: ${isReadOnly ? 'disabled' : ...} nos inputs
+                // MODO ESPELHO: Desativa todos os campos da tabela (${isReadOnly ? 'disabled' : ...}) e tira botão do lixo
                 tr.innerHTML = `
                     <td><input type="time" value="${p.time || ''}" ${isReadOnly ? 'disabled' : `onchange="updateRow(${idx}, 'time', this.value)"`}></td>
                     <td>
@@ -435,35 +457,131 @@
             });
         }
 
+        // --- SISTEMA DE TAREFAS DIÁRIAS (CHECKLISTS) ---
+        function getTasks() {
+            if (!monthData[selectedDay]) return [];
+            let val = monthData[selectedDay].unauth; // Usamos o campo antigo unauth como repositório invisível
+            if (!val) return [];
+            try { return JSON.parse(val); } catch (e) { return [{ text: val, done: false }]; }
+        }
+
+        function renderTasks() {
+            const list = document.getElementById('task-list');
+            if(!list) return;
+            const tasks = getTasks();
+            list.innerHTML = tasks.map((t, i) => `
+                <div class="flex items-center justify-between p-1.5 bg-white rounded-lg border ${t.done ? 'border-indigo-100 bg-indigo-50/30' : 'border-slate-200'} group hover:border-indigo-300 transition-colors shadow-sm">
+                    <div class="flex items-center gap-2 overflow-hidden flex-1">
+                        <input type="checkbox" ${t.done ? 'checked' : ''} ${isReadOnly ? 'disabled' : `onchange="toggleTask(${i})"`} class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer flex-shrink-0">
+                        <span class="text-[11px] truncate ${t.done ? 'line-through text-slate-400' : 'text-slate-700 font-medium'}" title="${t.text}">${t.text}</span>
+                    </div>
+                    ${!isReadOnly ? `<button onclick="deleteTask(${i})" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity px-2"><i class="fas fa-times"></i></button>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function addTask() {
+            if(isReadOnly) return; // MODO ESPELHO: Bloqueia ações
+            const input = document.getElementById('new-task-input');
+            const text = input.value.trim();
+            if (!text) return;
+            const tasks = getTasks();
+            tasks.push({ text, done: false });
+            if(!monthData[selectedDay]) monthData[selectedDay] = {};
+            monthData[selectedDay].unauth = JSON.stringify(tasks);
+            input.value = '';
+            renderTasks();
+            debouncedSave();
+        }
+
+        function toggleTask(idx) {
+            if(isReadOnly) return; // MODO ESPELHO: Bloqueia ações
+            const tasks = getTasks();
+            tasks[idx].done = !tasks[idx].done;
+            monthData[selectedDay].unauth = JSON.stringify(tasks);
+            renderTasks();
+            debouncedSave();
+        }
+
+        function deleteTask(idx) {
+            if(isReadOnly) return; // MODO ESPELHO: Bloqueia ações
+            const tasks = getTasks();
+            tasks.splice(idx, 1);
+            monthData[selectedDay].unauth = JSON.stringify(tasks);
+            renderTasks();
+            debouncedSave();
+        }
+
+        function clearTasks(e) {
+            if(isReadOnly) return; // MODO ESPELHO: Bloqueia ações
+            if(monthData[selectedDay]) monthData[selectedDay].unauth = '[]';
+            renderTasks();
+            debouncedSave();
+            const btn = e.currentTarget;
+            if(btn) {
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i> FEITO';
+                btn.style.color = '#10b981'; 
+                setTimeout(() => { btn.innerHTML = originalText; btn.style.color = ''; }, 2000);
+            }
+        }
+
+        // --- SISTEMA DE BOTÕES LIMPAR TUDO ---
+        function clearField(e, fieldId) {
+            if(isReadOnly) return; // MODO ESPELHO: Bloqueia ações
+            const el = document.getElementById(fieldId);
+            if(el) {
+                el.value = ''; 
+                if(monthData[selectedDay]) {
+                    if(fieldId === 'field-obs-geral') monthData[selectedDay].obs_geral = '';
+                    if(fieldId === 'field-auth') monthData[selectedDay].auth = '';
+                    if(fieldId === 'field-pend') monthData[selectedDay].pend = '';
+                    if(fieldId === 'field-denied') monthData[selectedDay].issue = '';
+                }
+                debouncedSave(); 
+                const btn = e.currentTarget;
+                if(btn) {
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check"></i> FEITO';
+                    btn.style.color = '#10b981'; 
+                    setTimeout(() => { btn.innerHTML = originalText; btn.style.color = ''; }, 2000);
+                }
+            }
+        }
+
         function addRow() {
-            if (isReadOnly) return; // ADICIONADO: Trava
+            if (isReadOnly) return; // MODO ESPELHO: Impede Adicionar linha
             if (!monthData[selectedDay]) monthData[selectedDay] = { procedures: [] };
             monthData[selectedDay].procedures.push({ time: '', room: '1' });
             refreshEditor(monthData[selectedDay]); debouncedSave();
         }
 
-        function updateRow(idx, f, v) { if(isReadOnly) return; monthData[selectedDay].procedures[idx][f] = v; debouncedSave(); }
-        function delRow(idx) { if(isReadOnly) return; monthData[selectedDay].procedures.splice(idx, 1); refreshEditor(monthData[selectedDay]); debouncedSave(); }
+        function updateRow(idx, f, v) { if (isReadOnly) return; monthData[selectedDay].procedures[idx][f] = v; debouncedSave(); }
+        function delRow(idx) { if (isReadOnly) return; monthData[selectedDay].procedures.splice(idx, 1); refreshEditor(monthData[selectedDay]); debouncedSave(); }
         
         function debouncedSave() { 
-            if(isReadOnly) return; // ADICIONADO: Trava
+            if (isReadOnly) return; // MODO ESPELHO: Impede envio para a base de dados
             document.getElementById('cloudIcon').className = "fas fa-sync fa-spin text-amber-500";
             document.getElementById('cloudLabel').innerText = "Aguarde...";
             clearTimeout(saveTimer); saveTimer = setTimeout(save, 700); 
         }
 
         async function save() {
-            if (!selectedDay || isReadOnly) return; // ADICIONADO: Trava
+            if (!selectedDay || isReadOnly) return; // MODO ESPELHO: Impede gravação
+            
+            // O SEU ESCUDO DE DADOS: monthData[selectedDay] = p garante que as letras não piscam e somem!
             const p = {
                 user_email: currentUser, date_key: selectedDay,
                 obs_geral: document.getElementById('field-obs-geral')?.value || '',
                 auth: document.getElementById('field-auth')?.value || '',
                 pend: document.getElementById('field-pend')?.value || '',
                 issue: document.getElementById('field-denied')?.value || '',
-                unauth: document.getElementById('field-unauth') ? document.getElementById('field-unauth').value : (monthData[selectedDay]?.unauth || ''),
+                unauth: monthData[selectedDay]?.unauth || '', // As tarefas da Letícia
                 procedures: monthData[selectedDay]?.procedures || [],
                 updated_at: new Date().toISOString()
             };
+            monthData[selectedDay] = p; // Proteção mantida a 100%
+
             const { error } = await _supabase.from('hemo_agenda').upsert(p, { onConflict: 'user_email, date_key' });
             document.getElementById('cloudIcon').className = error ? "fas fa-exclamation-triangle text-red-500" : "fas fa-cloud text-emerald-500";
             document.getElementById('cloudLabel').innerText = error ? "Erro!" : "Nuvem OK";
@@ -509,8 +627,8 @@
             doc.save(`Agenda_Vazia_${selectedDay}.pdf`);
         }
 
-        function handleAgeAuto(idx, dob) { if(isReadOnly) return; updateRow(idx, 'dn', dob); if(dob.length === 10) { const parts = dob.split('/'); const age = new Date().getFullYear() - new Date(parts[2], parts[1]-1, parts[0]).getFullYear(); if(!isNaN(age)) { document.getElementById(`age-${idx}`).value = age; updateRow(idx, 'age', age); } } }
-        function maskDate(i) { if(isReadOnly) return; let v = i.value.replace(/\D/g, '').slice(0, 8); if(v.length>=5) v=`${v.slice(0,2)}/${v.slice(2,4)}/${v.slice(4)}`; else if(v.length>=3) v=`${v.slice(0,2)}/${v.slice(2)}`; i.value=v; }
+        function handleAgeAuto(idx, dob) { if (isReadOnly) return; updateRow(idx, 'dn', dob); if(dob.length === 10) { const parts = dob.split('/'); const age = new Date().getFullYear() - new Date(parts[2], parts[1]-1, parts[0]).getFullYear(); if(!isNaN(age)) { document.getElementById(`age-${idx}`).value = age; updateRow(idx, 'age', age); } } }
+        function maskDate(i) { if (isReadOnly) return; let v = i.value.replace(/\D/g, '').slice(0, 8); if(v.length>=5) v=`${v.slice(0,2)}/${v.slice(2,4)}/${v.slice(4)}`; else if(v.length>=3) v=`${v.slice(0,2)}/${v.slice(2)}`; i.value=v; }
         function changeMonth(v) { currentDate.setMonth(currentDate.getMonth()+v); fetchData(); renderCalendar(); }
         function goToToday() { currentDate = new Date(); fetchData(); renderCalendar(); }
     </script>
