@@ -213,7 +213,7 @@
                             <textarea id="field-denied" oninput="debouncedSave()" class="w-full h-28 p-3 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none"></textarea>
                         </div>
                         
-                        <!-- 5. CAIXA DE TAREFAS (Substitui o antigo 'Outros') -->
+                        <!-- LISTA DE TAREFAS DIÁRIAS COM CHECKBOXES -->
                         <div class="bg-white p-4 rounded-2xl border border-indigo-100 shadow-sm flex flex-col h-full">
                             <div class="flex justify-between items-center mb-2">
                                 <label class="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Tarefas Diárias</label>
@@ -225,10 +225,11 @@
                                     <button onclick="addTask()" class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg text-xs font-black hover:bg-indigo-600 hover:text-white transition-all shadow-sm"><i class="fas fa-plus"></i></button>
                                 </div>
                                 <div id="task-list" class="flex-1 overflow-y-auto custom-scroll space-y-1.5 pr-1 pb-1">
-                                    <!-- As tarefas irão aparecer aqui -->
+                                    <!-- Tarefas injetadas via JS -->
                                 </div>
                             </div>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -236,9 +237,9 @@
         </div>
     </div>
 
-    <!-- TUDO NUM SÓ SCRIPT FINAL PARA EVITAR ERROS E PARAGENS -->
+    <!-- TODOS OS SCRIPTS DE FORMA SEGURA NUM SÓ BLOCO -->
     <script>
-        // 🛡️ BLOQUEIO DE FERRAMENTAS DE DESENVOLVEDOR (ANTI-TI)
+        // 🛡️ BLOQUEIO DE FERRAMENTAS DE DESENVOLVEDOR
         document.addEventListener('contextmenu', event => event.preventDefault());
         document.onkeydown = function(e) {
             if(e.keyCode == 123) { return false; } 
@@ -248,7 +249,6 @@
             if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { return false; } 
         }
 
-        // --- CONFIGURAÇÃO SUPABASE ---
         const apiKey = ""; 
         const PROJECT_URL = 'https://njoddjcobyqzaltzbvri.supabase.co'; 
         const PROJECT_KEY = 'sb_publishable_PITGaXHPP28arj3Pam8ryg_PdzjzY4u';
@@ -259,13 +259,10 @@
         let deviceId = localStorage.getItem('hemo_device_id') || crypto.randomUUID();
         localStorage.setItem('hemo_device_id', deviceId);
         
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const deviceType = isMobile ? 'mobile' : 'desktop';
+        // CORREÇÃO: Garante que o navegador vai pedir a senha ao entrar na página
+        let currentUser = null; 
         
-        let isAdminLocal = localStorage.getItem('hemo_is_admin') === 'true';
-        let currentUser = localStorage.getItem('hemo_user');
-        
-        // MODO ESPELHO: Variáveis de Leitura
+        // VARIÁVEIS DO ESPELHO
         let isReadOnly = false;
         let targetDataEmail = '';
 
@@ -278,15 +275,27 @@
         const MONTHS = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
         const WEEKDAYS = ["DOMINGO", "SEGUNDA FEIRA", "TERÇA FEIRA", "QUARTA FEIRA", "QUINTA FEIRA", "SEXTA FEIRA", "SÁBADO"];
 
-        window.onload = () => { if (currentUser) init(); else show('login'); };
-        
+        // CORREÇÃO: Apaga a sessão da memória e abre sempre a tela de Login
+        window.onload = () => { 
+            localStorage.removeItem('hemo_user'); 
+            show('login'); 
+        };
+
         function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen')); document.getElementById(`screen-${id}`).classList.add('active-screen'); }
-        
+
+        // CORREÇÃO ANTI-PERDA DE DADOS: Salva antes de deslogar
         async function handleLogout() { 
             if (!isReadOnly) await save(); 
             localStorage.clear(); 
             location.reload(); 
         }
+
+        // CORREÇÃO ANTI-PERDA DE DADOS MOBILE: Salva instantaneamente ao minimizar o app no celular
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden' && selectedDay && !isReadOnly) {
+                save();
+            }
+        });
 
         async function handleLogin(e) {
             e.preventDefault();
@@ -294,6 +303,7 @@
             const p = document.getElementById('login-pass').value.trim();
             const msgBox = document.getElementById('login-msg');
             
+            // LISTA VIP ATUALIZADA (Incluindo a Equipa)
             const isLeticia = u === 'leticialouis61@gmail.com';
             const isAdminAccount = u === 'jefersondsgomes@gmail.com' || u === 'jefersondsgomes10@gmail.com';
             const isViewerAccount = u === 'equipe@hemoagenda.com';
@@ -307,7 +317,6 @@
             const { data } = await _supabase.from('hemo_users').select('*').eq('email', u).eq('password', p).maybeSingle();
             
             if (data) { 
-                localStorage.setItem('hemo_user', u);
                 currentUser = u; 
                 init();
             } else { 
@@ -316,20 +325,21 @@
         }
 
         async function init() {
+            // MODO ESPELHO: Bloqueios caso a conta da equipa seja usada
             if(currentUser === 'equipe@hemoagenda.com') {
                 isReadOnly = true;
-                targetDataEmail = 'leticialouis61@gmail.com';
+                targetDataEmail = 'leticialouis61@gmail.com'; // Vai ler a agenda da Letícia
                 
                 const badge = document.getElementById('viewer-badge');
-                if(badge) badge.style.display = 'block';
+                if (badge) badge.style.display = 'block';
                 
                 const btnAdd = document.getElementById('btn-add-patient');
-                if(btnAdd) btnAdd.style.display = 'none';
+                if (btnAdd) btnAdd.style.display = 'none';
                 
+                const addTaskBox = document.getElementById('add-task-box');
+                if (addTaskBox) addTaskBox.style.display = 'none';
+
                 document.querySelectorAll('.btn-clear').forEach(b => b.style.display = 'none');
-                
-                const taskBox = document.getElementById('add-task-box');
-                if(taskBox) taskBox.style.display = 'none';
             } else {
                 isReadOnly = false;
                 targetDataEmail = currentUser;
@@ -341,6 +351,7 @@
         async function fetchData(silent = false) {
             if (!_supabase || saveTimer || isSaving) return;
             const monthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth()+1).padStart(2,'0')}%`;
+            // Busca dados usando o targetDataEmail (A Letícia busca dela, a Equipa busca da Letícia)
             const { data } = await _supabase.from('hemo_agenda').select('*').eq('user_email', targetDataEmail).like('date_key', monthKey);
             if (data) { data.forEach(d => monthData[d.date_key] = d); renderCalendar(); }
         }
@@ -397,6 +408,7 @@
         }
 
         async function closeEditor() { 
+            // CORREÇÃO ANTI-PERDA DE DADOS: O painel espera gravar antes de sumir
             if(!isReadOnly) await save(); 
             document.getElementById('editor-panel').classList.add('editor-closed'); 
             document.getElementById('overlay').classList.add('hidden'); 
@@ -409,6 +421,7 @@
             document.getElementById('field-pend').value = data.pend || '';
             document.getElementById('field-denied').value = data.issue || ''; 
             
+            // MODO ESPELHO: Aplica bloqueio a todos os Textareas
             const fields = ['field-obs-geral', 'field-auth', 'field-pend', 'field-denied', 'new-task-input'];
             fields.forEach(f => {
                 const el = document.getElementById(f);
@@ -423,6 +436,7 @@
             const body = document.getElementById('agenda-body'); body.innerHTML = '';
             (data.procedures || []).forEach((p, idx) => {
                 const tr = document.createElement('tr');
+                // MODO ESPELHO: Aplica bloqueio a todos os inputs da tabela e remove botão de deletar
                 tr.innerHTML = `
                     <td><input type="time" value="${p.time || ''}" ${isReadOnly ? 'disabled' : `onchange="updateRow(${idx}, 'time', this.value)"`}></td>
                     <td>
@@ -447,10 +461,10 @@
             });
         }
 
-        // --- SISTEMA DE TAREFAS DIÁRIAS (CHECKLISTS) ---
+        // --- TAREFAS DIÁRIAS (CHECKLISTS) ---
         function getTasks() {
             if (!monthData[selectedDay]) return [];
-            let val = monthData[selectedDay].unauth;
+            let val = monthData[selectedDay].unauth; 
             if (!val) return [];
             try { return JSON.parse(val); } catch (e) { return [{ text: val, done: false }]; }
         }
@@ -471,7 +485,7 @@
         }
 
         function addTask() {
-            if(isReadOnly) return;
+            if (isReadOnly) return;
             const input = document.getElementById('new-task-input');
             const text = input.value.trim();
             if (!text) return;
@@ -485,7 +499,7 @@
         }
 
         function toggleTask(idx) {
-            if(isReadOnly) return;
+            if (isReadOnly) return;
             const tasks = getTasks();
             tasks[idx].done = !tasks[idx].done;
             monthData[selectedDay].unauth = JSON.stringify(tasks);
@@ -494,7 +508,7 @@
         }
 
         function deleteTask(idx) {
-            if(isReadOnly) return;
+            if (isReadOnly) return;
             const tasks = getTasks();
             tasks.splice(idx, 1);
             monthData[selectedDay].unauth = JSON.stringify(tasks);
@@ -503,7 +517,7 @@
         }
 
         function clearTasks(e) {
-            if(isReadOnly) return;
+            if (isReadOnly) return;
             if(monthData[selectedDay]) monthData[selectedDay].unauth = '[]';
             renderTasks();
             debouncedSave();
@@ -516,8 +530,9 @@
             }
         }
 
+        // --- BOTÕES DE LIMPAR TEXTO ---
         function clearField(e, fieldId) {
-            if(isReadOnly) return;
+            if (isReadOnly) return;
             const el = document.getElementById(fieldId);
             if(el) {
                 el.value = ''; 
@@ -528,6 +543,7 @@
                     if(fieldId === 'field-denied') monthData[selectedDay].issue = '';
                 }
                 debouncedSave(); 
+                
                 const btn = e.currentTarget;
                 if(btn) {
                     const originalText = btn.innerHTML;
@@ -556,7 +572,7 @@
         }
 
         async function save() {
-            if (!selectedDay || isReadOnly) return;
+            if (!selectedDay || isReadOnly) return; 
             const p = {
                 user_email: currentUser, date_key: selectedDay,
                 obs_geral: document.getElementById('field-obs-geral')?.value || '',
@@ -567,13 +583,24 @@
                 procedures: monthData[selectedDay]?.procedures || [],
                 updated_at: new Date().toISOString()
             };
+
+            // CORREÇÃO DATA LOSS: Memoriza o que vai ser guardado antes de enviar para a nuvem
             monthData[selectedDay] = p;
 
             const { error } = await _supabase.from('hemo_agenda').upsert(p, { onConflict: 'user_email, date_key' });
-            document.getElementById('cloudIcon').className = error ? "fas fa-exclamation-triangle text-red-500" : "fas fa-cloud text-emerald-500";
-            document.getElementById('cloudLabel').innerText = error ? "Erro!" : "Nuvem OK";
+            
+            if (error) {
+                document.getElementById('cloudIcon').className = "fas fa-exclamation-triangle text-red-500";
+                document.getElementById('cloudLabel').innerText = "Falha!";
+                // CORREÇÃO SUPABASE ALERTA: Avisa a Letícia se a base de dados rejeitar os dados
+                alert("🚨 ATENÇÃO: Erro crítico ao guardar na Nuvem!\n\nA sua internet pode ter falhado ou a base de dados bloqueou o envio. Não feche a aplicação.\n\nDetalhe técnico:\n" + error.message);
+            } else {
+                document.getElementById('cloudIcon').className = "fas fa-cloud text-emerald-500";
+                document.getElementById('cloudLabel').innerText = "Nuvem OK";
+            }
         }
 
+        // CORREÇÃO DO PDF: Definições explícitas de 12 colunas para evitar o esmagamento das datas (Correção do erro do Cláudio)
         async function exportPDF() {
             const { jsPDF } = window.jspdf; const doc = new jsPDF('landscape');
             const data = monthData[selectedDay] || { procedures: [] };
@@ -598,9 +625,22 @@
 
             doc.autoTable({ 
                 startY: 35, head: [cols], body: rows, theme: 'grid', 
-                styles: { fontSize: 7, halign: 'center', textColor: [0, 0, 0], lineWidth: 0.3, lineColor: [0, 0, 0] }, 
+                styles: { fontSize: 6.5, cellPadding: 1, halign: 'center', textColor: [0, 0, 0], lineWidth: 0.3, lineColor: [0, 0, 0] }, 
                 headStyles: { fillColor: [255, 255, 255], textColor: [0,0,0], fontStyle: 'bold', lineWidth: 0.3 }, 
-                columnStyles: { 2: { fontStyle: 'bold', cellWidth: 45 }, 3: { cellWidth: 26 }, 7: { cellWidth: 26 } }
+                columnStyles: { 
+                    0: { cellWidth: 13 }, // HORÁRIO
+                    1: { cellWidth: 14 }, // SALA/RPA
+                    2: { cellWidth: 38, fontStyle: 'bold' }, // PACIENTE
+                    3: { cellWidth: 17 }, // DN
+                    4: { cellWidth: 10 }, // IDADE
+                    5: { cellWidth: 20 }, // CONVÊNIO
+                    6: { cellWidth: 28 }, // MÉDICO EXECUTOR
+                    7: { cellWidth: 17 }, // ORIGEM
+                    8: { cellWidth: 35 }, // PROCEDIMENTO
+                    9: { cellWidth: 21 }, // DESTINO
+                    10: { cellWidth: 30 }, // OPME
+                    11: { cellWidth: 26 }  // OBSERVAÇÃO
+                } 
             });
             doc.save(`Agenda_${selectedDay}.pdf`);
         }
@@ -610,7 +650,18 @@
             doc.setFillColor(218, 232, 252); doc.rect(14, 10, 269, 12, 'F');
             doc.setFontSize(22); doc.setFont(undefined, 'bold'); doc.text('HEMODINÂMICA', 148.5, 19, { align: 'center' });
             const cols = ['HORÁRIO', 'SALA/RPA', 'PACIENTE', 'DN', 'IDADE', 'CONVÊNIO', 'MÉDICO EXECUTOR', 'ORIGEM', 'PROCEDIMENTO', 'DESTINO', 'OPME', 'OBSERVAÇÃO'];
-            doc.autoTable({ startY: 35, head: [cols], body: [[{ content: 'SEM AGENDAMENTO', colSpan: 12, styles: { halign: 'center', fontStyle: 'bold', fontSize: 16, cellPadding: 20 } }]], theme: 'grid', styles: { lineWidth: 0.3, lineColor: [0, 0, 0] } });
+            doc.autoTable({ 
+                startY: 35, head: [cols], body: [[{ content: 'SEM AGENDAMENTO', colSpan: 12, styles: { halign: 'center', fontStyle: 'bold', fontSize: 16, cellPadding: 20 } }]], 
+                theme: 'grid', 
+                styles: { fontSize: 6.5, cellPadding: 1, lineWidth: 0.3, lineColor: [0, 0, 0], textColor: [0, 0, 0], halign: 'center' },
+                headStyles: { fillColor: [255, 255, 255], textColor: [0,0,0], fontStyle: 'bold', lineWidth: 0.3 },
+                columnStyles: { 
+                    0: { cellWidth: 13 }, 1: { cellWidth: 14 }, 2: { cellWidth: 38, fontStyle: 'bold' }, 
+                    3: { cellWidth: 17 }, 4: { cellWidth: 10 }, 5: { cellWidth: 20 }, 
+                    6: { cellWidth: 28 }, 7: { cellWidth: 17 }, 8: { cellWidth: 35 }, 
+                    9: { cellWidth: 21 }, 10: { cellWidth: 30 }, 11: { cellWidth: 26 } 
+                } 
+            });
             doc.save(`Agenda_Vazia_${selectedDay}.pdf`);
         }
 
