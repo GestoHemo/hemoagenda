@@ -278,7 +278,6 @@
         const MONTHS = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
         const WEEKDAYS = ["DOMINGO", "SEGUNDA FEIRA", "TERÇA FEIRA", "QUARTA FEIRA", "QUINTA FEIRA", "SEXTA FEIRA", "SÁBADO"];
 
-        // O AUTO-LOGIN CONTINUA AQUI PARA A LETICIA NÃO TER QUE METER A SENHA TODAS AS VEZES
         window.onload = () => { if (currentUser) init(); else show('login'); };
         
         function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen')); document.getElementById(`screen-${id}`).classList.add('active-screen'); }
@@ -295,7 +294,6 @@
             const p = document.getElementById('login-pass').value.trim();
             const msgBox = document.getElementById('login-msg');
             
-            // 🛡️ LISTA VIP ATUALIZADA: Inclui Letícia, Admin e Equipa
             const isLeticia = u === 'leticialouis61@gmail.com';
             const isAdminAccount = u === 'jefersondsgomes@gmail.com' || u === 'jefersondsgomes10@gmail.com';
             const isViewerAccount = u === 'equipe@hemoagenda.com';
@@ -318,10 +316,9 @@
         }
 
         async function init() {
-            // MODO ESPELHO: Aplicação de restrições de visualização
             if(currentUser === 'equipe@hemoagenda.com') {
                 isReadOnly = true;
-                targetDataEmail = 'leticialouis61@gmail.com'; // O sistema puxa os dados da Letícia
+                targetDataEmail = 'leticialouis61@gmail.com';
                 
                 const badge = document.getElementById('viewer-badge');
                 if(badge) badge.style.display = 'block';
@@ -335,7 +332,7 @@
                 if(taskBox) taskBox.style.display = 'none';
             } else {
                 isReadOnly = false;
-                targetDataEmail = currentUser; // Utilizador normal puxa os seus próprios dados
+                targetDataEmail = currentUser;
             }
 
             show('app'); renderCalendar(); await fetchData(); setupRealtime();
@@ -344,15 +341,12 @@
         async function fetchData(silent = false) {
             if (!_supabase || saveTimer || isSaving) return;
             const monthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth()+1).padStart(2,'0')}%`;
-            // MODO ESPELHO: Usa targetDataEmail para buscar as informações certas
             const { data } = await _supabase.from('hemo_agenda').select('*').eq('user_email', targetDataEmail).like('date_key', monthKey);
             if (data) { data.forEach(d => monthData[d.date_key] = d); renderCalendar(); }
         }
 
         function setupRealtime() {
-            // CANAL DA NUVEM RESTAURADO: cloud-sync-v97 (Exatamente como pediu para não perder a sincronização)
             _supabase.channel('cloud-sync-v97').on('postgres_changes', { event: '*', schema: 'public', table: 'hemo_agenda' }, (payload) => {
-                // MODO ESPELHO: Escuta o targetDataEmail em vez do seu próprio
                 if (payload.new.user_email === targetDataEmail) {
                     monthData[payload.new.date_key] = payload.new;
                     renderCalendar();
@@ -393,7 +387,6 @@
         }
 
         async function openEditor(key) {
-            // MODO ESPELHO: Se for visualizador (!isReadOnly), não tenta gravar no banco ao mudar de dia
             if (selectedDay && selectedDay !== key && !isReadOnly) await save();
             selectedDay = key; const data = monthData[key] || { procedures: [] };
             refreshEditor(data);
@@ -404,7 +397,6 @@
         }
 
         async function closeEditor() { 
-            // MODO ESPELHO: Se for visualizador, fecha a tela sem tentar gravar
             if(!isReadOnly) await save(); 
             document.getElementById('editor-panel').classList.add('editor-closed'); 
             document.getElementById('overlay').classList.add('hidden'); 
@@ -417,7 +409,6 @@
             document.getElementById('field-pend').value = data.pend || '';
             document.getElementById('field-denied').value = data.issue || ''; 
             
-            // MODO ESPELHO: Desativa as caixas de notas para não edição
             const fields = ['field-obs-geral', 'field-auth', 'field-pend', 'field-denied', 'new-task-input'];
             fields.forEach(f => {
                 const el = document.getElementById(f);
@@ -432,7 +423,6 @@
             const body = document.getElementById('agenda-body'); body.innerHTML = '';
             (data.procedures || []).forEach((p, idx) => {
                 const tr = document.createElement('tr');
-                // MODO ESPELHO: Desativa todos os campos da tabela (${isReadOnly ? 'disabled' : ...}) e tira botão do lixo
                 tr.innerHTML = `
                     <td><input type="time" value="${p.time || ''}" ${isReadOnly ? 'disabled' : `onchange="updateRow(${idx}, 'time', this.value)"`}></td>
                     <td>
@@ -460,7 +450,7 @@
         // --- SISTEMA DE TAREFAS DIÁRIAS (CHECKLISTS) ---
         function getTasks() {
             if (!monthData[selectedDay]) return [];
-            let val = monthData[selectedDay].unauth; // Usamos o campo antigo unauth como repositório invisível
+            let val = monthData[selectedDay].unauth;
             if (!val) return [];
             try { return JSON.parse(val); } catch (e) { return [{ text: val, done: false }]; }
         }
@@ -481,7 +471,7 @@
         }
 
         function addTask() {
-            if(isReadOnly) return; // MODO ESPELHO: Bloqueia ações
+            if(isReadOnly) return;
             const input = document.getElementById('new-task-input');
             const text = input.value.trim();
             if (!text) return;
@@ -495,7 +485,7 @@
         }
 
         function toggleTask(idx) {
-            if(isReadOnly) return; // MODO ESPELHO: Bloqueia ações
+            if(isReadOnly) return;
             const tasks = getTasks();
             tasks[idx].done = !tasks[idx].done;
             monthData[selectedDay].unauth = JSON.stringify(tasks);
@@ -504,7 +494,7 @@
         }
 
         function deleteTask(idx) {
-            if(isReadOnly) return; // MODO ESPELHO: Bloqueia ações
+            if(isReadOnly) return;
             const tasks = getTasks();
             tasks.splice(idx, 1);
             monthData[selectedDay].unauth = JSON.stringify(tasks);
@@ -513,7 +503,7 @@
         }
 
         function clearTasks(e) {
-            if(isReadOnly) return; // MODO ESPELHO: Bloqueia ações
+            if(isReadOnly) return;
             if(monthData[selectedDay]) monthData[selectedDay].unauth = '[]';
             renderTasks();
             debouncedSave();
@@ -526,9 +516,8 @@
             }
         }
 
-        // --- SISTEMA DE BOTÕES LIMPAR TUDO ---
         function clearField(e, fieldId) {
-            if(isReadOnly) return; // MODO ESPELHO: Bloqueia ações
+            if(isReadOnly) return;
             const el = document.getElementById(fieldId);
             if(el) {
                 el.value = ''; 
@@ -550,7 +539,7 @@
         }
 
         function addRow() {
-            if (isReadOnly) return; // MODO ESPELHO: Impede Adicionar linha
+            if (isReadOnly) return;
             if (!monthData[selectedDay]) monthData[selectedDay] = { procedures: [] };
             monthData[selectedDay].procedures.push({ time: '', room: '1' });
             refreshEditor(monthData[selectedDay]); debouncedSave();
@@ -560,27 +549,25 @@
         function delRow(idx) { if (isReadOnly) return; monthData[selectedDay].procedures.splice(idx, 1); refreshEditor(monthData[selectedDay]); debouncedSave(); }
         
         function debouncedSave() { 
-            if (isReadOnly) return; // MODO ESPELHO: Impede envio para a base de dados
+            if (isReadOnly) return;
             document.getElementById('cloudIcon').className = "fas fa-sync fa-spin text-amber-500";
             document.getElementById('cloudLabel').innerText = "Aguarde...";
             clearTimeout(saveTimer); saveTimer = setTimeout(save, 700); 
         }
 
         async function save() {
-            if (!selectedDay || isReadOnly) return; // MODO ESPELHO: Impede gravação
-            
-            // O SEU ESCUDO DE DADOS: monthData[selectedDay] = p garante que as letras não piscam e somem!
+            if (!selectedDay || isReadOnly) return;
             const p = {
                 user_email: currentUser, date_key: selectedDay,
                 obs_geral: document.getElementById('field-obs-geral')?.value || '',
                 auth: document.getElementById('field-auth')?.value || '',
                 pend: document.getElementById('field-pend')?.value || '',
                 issue: document.getElementById('field-denied')?.value || '',
-                unauth: monthData[selectedDay]?.unauth || '', // As tarefas da Letícia
+                unauth: monthData[selectedDay]?.unauth || '',
                 procedures: monthData[selectedDay]?.procedures || [],
                 updated_at: new Date().toISOString()
             };
-            monthData[selectedDay] = p; // Proteção mantida a 100%
+            monthData[selectedDay] = p;
 
             const { error } = await _supabase.from('hemo_agenda').upsert(p, { onConflict: 'user_email, date_key' });
             document.getElementById('cloudIcon').className = error ? "fas fa-exclamation-triangle text-red-500" : "fas fa-cloud text-emerald-500";
@@ -613,7 +600,7 @@
                 startY: 35, head: [cols], body: rows, theme: 'grid', 
                 styles: { fontSize: 7, halign: 'center', textColor: [0, 0, 0], lineWidth: 0.3, lineColor: [0, 0, 0] }, 
                 headStyles: { fillColor: [255, 255, 255], textColor: [0,0,0], fontStyle: 'bold', lineWidth: 0.3 }, 
-                columnStyles: { 2: { fontStyle: 'bold', cellWidth: 45 } } 
+                columnStyles: { 2: { fontStyle: 'bold', cellWidth: 45 }, 3: { cellWidth: 26 }, 7: { cellWidth: 26 } }
             });
             doc.save(`Agenda_${selectedDay}.pdf`);
         }
