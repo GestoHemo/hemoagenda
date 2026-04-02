@@ -142,6 +142,15 @@
                     <div class="stat-card"><span class="text-[9px] font-black text-slate-400 uppercase mb-1">Dias Ativos</span><span id="stat-dias" class="text-2xl font-black text-slate-800">0</span></div>
                     <div class="stat-card"><span class="text-[9px] font-black text-slate-400 uppercase mb-1">Pendências</span><span id="stat-pends" class="text-2xl font-black text-amber-500">0</span></div>
                 </div>
+                <div class="grid grid-cols-7 gap-4 mb-2">
+                    <div class="text-center text-[10px] font-black text-slate-400 uppercase tracking-widest py-1">Dom</div>
+                    <div class="text-center text-[10px] font-black text-slate-400 uppercase tracking-widest py-1">Seg</div>
+                    <div class="text-center text-[10px] font-black text-slate-400 uppercase tracking-widest py-1">Ter</div>
+                    <div class="text-center text-[10px] font-black text-slate-400 uppercase tracking-widest py-1">Qua</div>
+                    <div class="text-center text-[10px] font-black text-slate-400 uppercase tracking-widest py-1">Qui</div>
+                    <div class="text-center text-[10px] font-black text-slate-400 uppercase tracking-widest py-1">Sex</div>
+                    <div class="text-center text-[10px] font-black text-slate-500 uppercase tracking-widest py-1">Sáb</div>
+                </div>
                 <div id="calendar-grid" class="grid grid-cols-7 gap-4 pb-20"></div>
             </div>
 
@@ -647,8 +656,13 @@
 
         async function exportPDFVazio() {
             const { jsPDF } = window.jspdf; const doc = new jsPDF('landscape');
+            const dateParts = selectedDay.split('-');
+            const dateObj = new Date(dateParts[0], dateParts[1]-1, dateParts[2]);
+            const formattedDate = `DIA ${dateParts[2]}/${dateParts[1]} (${WEEKDAYS[dateObj.getDay()]})`;
             doc.setFillColor(218, 232, 252); doc.rect(14, 10, 269, 12, 'F');
             doc.setFontSize(22); doc.setFont(undefined, 'bold'); doc.text('HEMODINÂMICA', 148.5, 19, { align: 'center' });
+            doc.setFillColor(255, 255, 0); doc.rect(14, 25, 75, 8, 'F');
+            doc.setFontSize(10); doc.text(formattedDate, 16, 30.5);
             const cols = ['HORÁRIO', 'SALA/RPA', 'PACIENTE', 'DN', 'IDADE', 'CONVÊNIO', 'MÉDICO EXECUTOR', 'ORIGEM', 'PROCEDIMENTO', 'DESTINO', 'OPME', 'OBSERVAÇÃO'];
             doc.autoTable({ 
                 startY: 35, head: [cols], body: [[{ content: 'SEM AGENDAMENTO', colSpan: 12, styles: { halign: 'center', fontStyle: 'bold', fontSize: 16, cellPadding: 20 } }]], 
