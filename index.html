@@ -5,15 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HemoAgenda Pro</title>
     
+    <!-- Configuração PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2966/2966327.png">
     
+    <!-- Bibliotecas Externas -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     
+    <!-- Supabase e PDF -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
@@ -55,7 +58,7 @@
         select.custom-select { font-size: 11px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; width: 100%; transition: all 0.2s; background: #fdfdfd; cursor: pointer; font-weight: 700; text-align: center; appearance: none; }
         select.custom-select:focus { border-color: #3b82f6; background: white; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
 
-        /* 🛡️ MODO ESPELHO: Aplica o estilo visual de bloqueado a todos os campos */
+        /* Estilo para campos bloqueados no modo espelho */
         input:disabled, textarea:disabled, select:disabled { background: #f1f5f9; cursor: not-allowed; color: #64748b; opacity: 0.8; border-color: #e2e8f0; }
 
         .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -69,66 +72,7 @@
 </head>
 <body>
 
-    <script>
-        // 🛡️ BLOQUEIO DE FERRAMENTAS DE DESENVOLVEDOR (ANTI-TI)
-        document.addEventListener('contextmenu', event => event.preventDefault());
-        document.onkeydown = function(e) {
-            if(e.keyCode == 123) { return false; } 
-            if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) { return false; } 
-            if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) { return false; } 
-            if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) { return false; } 
-            if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { return false; } 
-        }
-
-        const apiKey = ""; 
-        const PROJECT_URL = 'https://njoddjcobyqzaltzbvri.supabase.co'; 
-        const PROJECT_KEY = 'sb_publishable_PITGaXHPP28arj3Pam8ryg_PdzjzY4u';
-        
-        let _supabase = null;
-        if (window.supabase) _supabase = window.supabase.createClient(PROJECT_URL, PROJECT_KEY);
-
-        let deviceId = localStorage.getItem('hemo_device_id') || crypto.randomUUID();
-        localStorage.setItem('hemo_device_id', deviceId);
-        
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        const deviceType = isMobile ? 'mobile' : 'desktop';
-        
-        let isAdminLocal = localStorage.getItem('hemo_is_admin') === 'true';
-        let currentUser = localStorage.getItem('hemo_user');
-        
-        // MODO ESPELHO
-        let isReadOnly = false;
-        let targetDataEmail = '';
-
-        let currentDate = new Date();
-        let monthData = {}; 
-        let selectedDay = null;
-        let saveTimer = null;
-        let isSaving = false;
-        
-        const MONTHS = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-        const WEEKDAYS = ["DOMINGO", "SEGUNDA FEIRA", "TERÇA FEIRA", "QUARTA FEIRA", "QUINTA FEIRA", "SEXTA FEIRA", "SÁBADO"];
-
-        // SE NÃO TIVER LOGADO, VAI PRA TELA DE LOGIN. SE TIVER, ENTRA DIRETO (O que a Letícia prefere).
-        window.onload = () => { if (currentUser) init(); else show('login'); };
-        
-        function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen')); document.getElementById(`screen-${id}`).classList.add('active-screen'); }
-        
-        // SALVA ANTES DE SAIR
-        async function handleLogout() { 
-            if (!isReadOnly) await save(); 
-            localStorage.clear(); 
-            location.reload(); 
-        }
-
-        // SALVA QUANDO O CELULAR MUDA DE APLICATIVO OU DESLIGA A TELA
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'hidden' && selectedDay && !isReadOnly) {
-                save();
-            }
-        });
-    </script>
-
+    <!-- TELA LOGIN -->
     <div id="screen-login" class="screen active-screen items-center justify-center bg-slate-50 p-6">
         <div class="bg-white p-10 md:p-12 rounded-[32px] shadow-2xl w-full max-w-sm text-center border border-slate-100 relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 via-emerald-500 to-red-500"></div>
@@ -165,6 +109,7 @@
         </div>
     </div>
 
+    <!-- TELA PRINCIPAL -->
     <div id="screen-app" class="screen bg-slate-50">
         <header class="h-16 bg-white border-b border-slate-200 flex justify-between items-center px-4 md:px-8 shadow-sm shrink-0 z-20">
             <div class="flex items-center gap-4">
@@ -199,6 +144,7 @@
                 <div id="calendar-grid" class="grid grid-cols-7 gap-4 pb-20"></div>
             </div>
 
+            <!-- Painel Editor -->
             <div id="editor-panel" class="absolute inset-y-0 right-0 w-full md:w-[94%] bg-white shadow-2xl z-30 flex flex-col editor-closed border-l border-slate-200">
                 <div class="h-20 border-b border-slate-100 flex justify-between items-center px-8 bg-white shrink-0">
                     <div class="flex items-center gap-4">
@@ -233,10 +179,11 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                         <div class="bg-white p-4 rounded-2xl border border-blue-100 shadow-sm flex flex-col h-full">
                             <div class="flex justify-between items-center mb-2">
                                 <label class="text-[10px] font-black text-blue-600 uppercase tracking-widest">Geral</label>
+                                <button onclick="clearField(event, 'field-obs-geral')" class="btn-clear text-[9px] font-black text-blue-400 hover:text-blue-700 transition-colors flex items-center gap-1"><i class="fas fa-eraser"></i> LIMPAR</button>
                             </div>
                             <textarea id="field-obs-geral" oninput="debouncedSave()" class="w-full h-28 p-3 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none"></textarea>
                         </div>
@@ -244,6 +191,7 @@
                         <div class="bg-white p-4 rounded-2xl border border-emerald-100 shadow-sm flex flex-col h-full">
                             <div class="flex justify-between items-center mb-2">
                                 <label class="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Autorizados</label>
+                                <button onclick="clearField(event, 'field-auth')" class="btn-clear text-[9px] font-black text-emerald-400 hover:text-emerald-700 transition-colors flex items-center gap-1"><i class="fas fa-eraser"></i> LIMPAR</button>
                             </div>
                             <textarea id="field-auth" oninput="debouncedSave()" class="w-full h-28 p-3 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none"></textarea>
                         </div>
@@ -251,6 +199,7 @@
                         <div class="bg-white p-4 rounded-2xl border border-amber-100 shadow-sm flex flex-col h-full">
                             <div class="flex justify-between items-center mb-2">
                                 <label class="text-[10px] font-black text-amber-600 uppercase tracking-widest">Pendências</label>
+                                <button onclick="clearField(event, 'field-pend')" class="btn-clear text-[9px] font-black text-amber-400 hover:text-amber-700 transition-colors flex items-center gap-1"><i class="fas fa-eraser"></i> LIMPAR</button>
                             </div>
                             <textarea id="field-pend" oninput="debouncedSave()" class="w-full h-28 p-3 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none"></textarea>
                         </div>
@@ -258,9 +207,28 @@
                         <div class="bg-white p-4 rounded-2xl border border-red-100 shadow-sm flex flex-col h-full">
                             <div class="flex justify-between items-center mb-2">
                                 <label class="text-[10px] font-black text-red-600 uppercase tracking-widest">Críticos</label>
+                                <button onclick="clearField(event, 'field-denied')" class="btn-clear text-[9px] font-black text-red-400 hover:text-red-700 transition-colors flex items-center gap-1"><i class="fas fa-eraser"></i> LIMPAR</button>
                             </div>
                             <textarea id="field-denied" oninput="debouncedSave()" class="w-full h-28 p-3 text-xs border border-slate-100 rounded-xl bg-slate-50 outline-none resize-none"></textarea>
                         </div>
+                        
+                        <!-- LISTA DE TAREFAS DIÁRIAS COM CHECKBOXES -->
+                        <div class="bg-white p-4 rounded-2xl border border-indigo-100 shadow-sm flex flex-col h-full">
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Tarefas Diárias</label>
+                                <button onclick="clearTasks(event)" class="btn-clear text-[9px] font-black text-indigo-400 hover:text-indigo-700 transition-colors flex items-center gap-1"><i class="fas fa-eraser"></i> LIMPAR TUDO</button>
+                            </div>
+                            <div class="flex flex-col h-28">
+                                <div class="flex gap-2 mb-2 shrink-0" id="add-task-box">
+                                    <input type="text" id="new-task-input" placeholder="Adicionar nova tarefa..." class="text-[11px] p-2 flex-1 border border-slate-200 rounded-lg bg-slate-50 outline-none focus:bg-white focus:border-indigo-400 transition-colors" onkeypress="if(event.key === 'Enter') addTask()">
+                                    <button onclick="addTask()" class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-lg text-xs font-black hover:bg-indigo-600 hover:text-white transition-all shadow-sm"><i class="fas fa-plus"></i></button>
+                                </div>
+                                <div id="task-list" class="flex-1 overflow-y-auto custom-scroll space-y-1.5 pr-1 pb-1">
+                                    <!-- Tarefas injetadas via JS -->
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -268,18 +236,65 @@
         </div>
     </div>
 
+    <!-- TODOS OS SCRIPTS DE FORMA SEGURA NUM SÓ BLOCO -->
     <script>
+        // 🛡️ BLOQUEIO DE FERRAMENTAS DE DESENVOLVEDOR (ANTI-TI)
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.onkeydown = function(e) {
+            if(e.keyCode == 123) { return false; } 
+            if(e.ctrlKey && e.shiftKey && (e.keyCode == 'I'.charCodeAt(0) || e.keyCode == 'C'.charCodeAt(0) || e.keyCode == 'J'.charCodeAt(0))) { return false; } 
+            if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { return false; } 
+        }
+
+        const apiKey = ""; 
+        const PROJECT_URL = 'https://njoddjcobyqzaltzbvri.supabase.co'; 
+        const PROJECT_KEY = 'sb_publishable_PITGaXHPP28arj3Pam8ryg_PdzjzY4u';
+        
+        let _supabase = null;
+        if (window.supabase) _supabase = window.supabase.createClient(PROJECT_URL, PROJECT_KEY);
+
+        let deviceId = localStorage.getItem('hemo_device_id') || crypto.randomUUID();
+        localStorage.setItem('hemo_device_id', deviceId);
+        
+        // Garante que o navegador vai pedir a senha ao entrar na página se não houver sessão
+        let currentUser = localStorage.getItem('hemo_user'); 
+        
+        // VARIÁVEIS DO ESPELHO E ESTADO
+        let isReadOnly = false;
+        let targetDataEmail = '';
+        let currentDate = new Date();
+        let monthData = {}; 
+        let selectedDay = null;
+        let saveTimer = null;
+        let isSaving = false;
+        
+        const MONTHS = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+        const WEEKDAYS = ["DOMINGO", "SEGUNDA FEIRA", "TERÇA FEIRA", "QUARTA FEIRA", "QUINTA FEIRA", "SEXTA FEIRA", "SÁBADO"];
+
+        window.onload = () => { if (currentUser) init(); else show('login'); };
+
+        function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen')); document.getElementById(`screen-${id}`).classList.add('active-screen'); }
+
+        // SALVAMENTO ANTI-PERDA DE DADOS MOBILE
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && selectedDay && !isReadOnly) save(); });
+
+        async function handleLogout() { 
+            if (!isReadOnly) await save(); 
+            localStorage.clear(); 
+            location.reload(); 
+        }
+
         async function handleLogin(e) {
             e.preventDefault();
             const u = document.getElementById('login-user').value.trim().toLowerCase();
             const p = document.getElementById('login-pass').value.trim();
             const msgBox = document.getElementById('login-msg');
             
-            // LISTA VIP DE E-MAILS
+            // LISTA VIP ATUALIZADA
             const isLeticia = u === 'leticialouis61@gmail.com';
             const isAdminAccount = u === 'jefersondsgomes@gmail.com' || u === 'jefersondsgomes10@gmail.com';
             const isViewerAccount = u === 'equipe@hemoagenda.com';
-            
+
             if (!isLeticia && !isAdminAccount && !isViewerAccount) {
                 msgBox.innerHTML = "❌ ACESSO PROIBIDO<br><span class='text-[9px] font-bold'>E-MAIL NÃO AUTORIZADO.</span>";
                 return;
@@ -298,16 +313,21 @@
         }
 
         async function init() {
-            // LÓGICA DO ESPELHO
+            // LÓGICA DO MODO ESPELHO
             if(currentUser === 'equipe@hemoagenda.com') {
                 isReadOnly = true;
-                targetDataEmail = 'leticialouis61@gmail.com';
+                targetDataEmail = 'leticialouis61@gmail.com'; 
                 
                 const badge = document.getElementById('viewer-badge');
                 if (badge) badge.style.display = 'block';
                 
                 const btnAdd = document.getElementById('btn-add-patient');
                 if (btnAdd) btnAdd.style.display = 'none';
+                
+                const taskBox = document.getElementById('add-task-box');
+                if (taskBox) taskBox.style.display = 'none';
+
+                document.querySelectorAll('.btn-clear').forEach(b => b.style.display = 'none');
             } else {
                 isReadOnly = false;
                 targetDataEmail = currentUser;
@@ -319,12 +339,12 @@
         async function fetchData(silent = false) {
             if (!_supabase || saveTimer || isSaving) return;
             const monthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth()+1).padStart(2,'0')}%`;
-            // Busca dados usando o targetDataEmail 
             const { data } = await _supabase.from('hemo_agenda').select('*').eq('user_email', targetDataEmail).like('date_key', monthKey);
             if (data) { data.forEach(d => monthData[d.date_key] = d); renderCalendar(); }
         }
 
         function setupRealtime() {
+            // CANAL DE SINCRONIZAÇÃO: cloud-sync-v97
             _supabase.channel('cloud-sync-v97').on('postgres_changes', { event: '*', schema: 'public', table: 'hemo_agenda' }, (payload) => {
                 if (payload.new.user_email === targetDataEmail) {
                     monthData[payload.new.date_key] = payload.new;
@@ -397,8 +417,7 @@
             document.getElementById('field-pend').value = data.pend || '';
             document.getElementById('field-denied').value = data.issue || ''; 
             
-            // Aplica readonly nos textareas 
-            const fields = ['field-obs-geral', 'field-auth', 'field-pend', 'field-denied'];
+            const fields = ['field-obs-geral', 'field-auth', 'field-pend', 'field-denied', 'new-task-input'];
             fields.forEach(f => {
                 const el = document.getElementById(f);
                 if (el) {
@@ -406,6 +425,8 @@
                     else el.removeAttribute('disabled');
                 }
             });
+
+            renderTasks();
 
             const body = document.getElementById('agenda-body'); body.innerHTML = '';
             (data.procedures || []).forEach((p, idx) => {
@@ -434,44 +455,122 @@
             });
         }
 
-        function addRow() {
-            if (isReadOnly) return;
-            if (!monthData[selectedDay]) monthData[selectedDay] = { procedures: [] };
-            monthData[selectedDay].procedures.push({ time: '', room: '1' });
-            refreshEditor(monthData[selectedDay]); debouncedSave();
+        // --- SISTEMA DE TAREFAS DIÁRIAS ---
+        function getTasks() {
+            if (!monthData[selectedDay]) return [];
+            let val = monthData[selectedDay].unauth;
+            if (!val) return [];
+            try { return JSON.parse(val); } catch (e) { return [{ text: val, done: false }]; }
         }
 
+        function renderTasks() {
+            const list = document.getElementById('task-list');
+            if(!list) return;
+            const tasks = getTasks();
+            list.innerHTML = tasks.map((t, i) => `
+                <div class="flex items-center justify-between p-1.5 bg-white rounded-lg border ${t.done ? 'border-indigo-100 bg-indigo-50/30' : 'border-slate-200'} group hover:border-indigo-300 transition-colors shadow-sm">
+                    <div class="flex items-center gap-2 overflow-hidden flex-1">
+                        <input type="checkbox" ${t.done ? 'checked' : ''} ${isReadOnly ? 'disabled' : `onchange="toggleTask(${i})"`} class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer flex-shrink-0">
+                        <span class="text-[11px] truncate ${t.done ? 'line-through text-slate-400' : 'text-slate-700 font-medium'}" title="${t.text}">${t.text}</span>
+                    </div>
+                    ${!isReadOnly ? `<button onclick="deleteTask(${i})" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity px-2"><i class="fas fa-times"></i></button>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function addTask() {
+            if (isReadOnly) return;
+            const input = document.getElementById('new-task-input');
+            const text = input.value.trim();
+            if (!text) return;
+            const tasks = getTasks();
+            tasks.push({ text, done: false });
+            if(!monthData[selectedDay]) monthData[selectedDay] = {};
+            monthData[selectedDay].unauth = JSON.stringify(tasks);
+            input.value = '';
+            renderTasks();
+            debouncedSave();
+        }
+
+        function toggleTask(idx) {
+            if (isReadOnly) return;
+            const tasks = getTasks();
+            tasks[idx].done = !tasks[idx].done;
+            monthData[selectedDay].unauth = JSON.stringify(tasks);
+            renderTasks();
+            debouncedSave();
+        }
+
+        function deleteTask(idx) {
+            if (isReadOnly) return;
+            const tasks = getTasks();
+            tasks.splice(idx, 1);
+            monthData[selectedDay].unauth = JSON.stringify(tasks);
+            renderTasks();
+            debouncedSave();
+        }
+
+        function clearTasks(e) {
+            if (isReadOnly) return;
+            if(monthData[selectedDay]) monthData[selectedDay].unauth = '[]';
+            renderTasks();
+            debouncedSave();
+            const btn = e.currentTarget;
+            if(btn) {
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i> FEITO';
+                btn.style.color = '#10b981'; 
+                setTimeout(() => { btn.innerHTML = originalText; btn.style.color = ''; }, 2000);
+            }
+        }
+
+        function clearField(e, fieldId) {
+            if (isReadOnly) return;
+            const el = document.getElementById(fieldId);
+            if(el) {
+                el.value = ''; 
+                if(monthData[selectedDay]) {
+                    if(fieldId === 'field-obs-geral') monthData[selectedDay].obs_geral = '';
+                    if(fieldId === 'field-auth') monthData[selectedDay].auth = '';
+                    if(fieldId === 'field-pend') monthData[selectedDay].pend = '';
+                    if(fieldId === 'field-denied') monthData[selectedDay].issue = '';
+                }
+                debouncedSave(); 
+                const btn = e.currentTarget;
+                if(btn) {
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check"></i> FEITO';
+                    btn.style.color = '#10b981'; 
+                    setTimeout(() => { btn.innerHTML = originalText; btn.style.color = ''; }, 2000);
+                }
+            }
+        }
+
+        function addRow() { if (isReadOnly) return; if (!monthData[selectedDay]) monthData[selectedDay] = { procedures: [] }; monthData[selectedDay].procedures.push({ time: '', room: '1' }); refreshEditor(monthData[selectedDay]); debouncedSave(); }
         function updateRow(idx, f, v) { if (isReadOnly) return; monthData[selectedDay].procedures[idx][f] = v; debouncedSave(); }
         function delRow(idx) { if (isReadOnly) return; monthData[selectedDay].procedures.splice(idx, 1); refreshEditor(monthData[selectedDay]); debouncedSave(); }
-        
-        function debouncedSave() { 
-            if (isReadOnly) return;
-            document.getElementById('cloudIcon').className = "fas fa-sync fa-spin text-amber-500";
-            document.getElementById('cloudLabel').innerText = "Aguarde...";
-            clearTimeout(saveTimer); saveTimer = setTimeout(save, 700); 
-        }
+        function debouncedSave() { if (isReadOnly) return; document.getElementById('cloudIcon').className = "fas fa-sync fa-spin text-amber-500"; document.getElementById('cloudLabel').innerText = "Aguarde..."; clearTimeout(saveTimer); saveTimer = setTimeout(save, 700); }
 
         async function save() {
             if (!selectedDay || isReadOnly) return;
-            
-            // GARANTE que os dados em cache são memorizados antes de os enviar. Isto previne a perda de dados!
             const p = {
                 user_email: currentUser, date_key: selectedDay,
                 obs_geral: document.getElementById('field-obs-geral')?.value || '',
                 auth: document.getElementById('field-auth')?.value || '',
                 pend: document.getElementById('field-pend')?.value || '',
                 issue: document.getElementById('field-denied')?.value || '',
+                unauth: monthData[selectedDay]?.unauth || '',
                 procedures: monthData[selectedDay]?.procedures || [],
                 updated_at: new Date().toISOString()
             };
-            monthData[selectedDay] = p; 
-
+            monthData[selectedDay] = p;
             const { error } = await _supabase.from('hemo_agenda').upsert(p, { onConflict: 'user_email, date_key' });
+            if (error) { alert("🚨 Erro na Nuvem: " + error.message); }
             document.getElementById('cloudIcon').className = error ? "fas fa-exclamation-triangle text-red-500" : "fas fa-cloud text-emerald-500";
             document.getElementById('cloudLabel').innerText = error ? "Erro!" : "Nuvem OK";
         }
 
-        // --- CORREÇÃO DO PDF PARA NÃO QUEBRAR A DATA E A ORIGEM ---
+        // --- PDF CORRIGIDO COM DATA E LARGURAS FIXAS ---
         async function exportPDF() {
             const { jsPDF } = window.jspdf; const doc = new jsPDF('landscape');
             const data = monthData[selectedDay] || { procedures: [] };
@@ -481,47 +580,49 @@
 
             doc.setFillColor(218, 232, 252); doc.rect(14, 10, 269, 12, 'F');
             doc.setFontSize(22); doc.setFont(undefined, 'bold'); doc.text('HEMODINÂMICA', 148.5, 19, { align: 'center' });
+            
+            // DATA HEADER
             doc.setFillColor(255, 255, 0); doc.rect(14, 25, 75, 8, 'F');
             doc.setFontSize(10); doc.text(formattedDate, 16, 30.5);
 
             const cols = ['HORÁRIO', 'SALA/RPA', 'PACIENTE', 'DN', 'IDADE', 'CONVÊNIO', 'MÉDICO EXECUTOR', 'ORIGEM', 'PROCEDIMENTO', 'DESTINO', 'OPME', 'OBSERVAÇÃO'];
-            
-            let sorted = [...(data.procedures || [])].sort((a, b) => (a.time || '23:59').localeCompare(b.time || '23:59'));
+            let sorted = [...(data.procedures || [])].sort((a,b)=>(a.time||'23:59').localeCompare(b.time||'23:59'));
+            let rows = sorted.map(p => [p.time||'', p.room||'', p.patient?.toUpperCase()||'', p.dn||'', p.age||'', p.insurance?.toUpperCase()||'', p.doctor?.toUpperCase()||'', p.origin?.toUpperCase()||'', p.proc?.toUpperCase()||'', p.dest?.toUpperCase()||'', p.opme?.toUpperCase()||'', p.obs||'']);
 
-            let rows = sorted.length > 0 ? sorted.map(p => [
-                p.time||'', p.room||'', p.patient?.toUpperCase()||'', p.dn||'', p.age||'', 
-                p.insurance?.toUpperCase()||'', p.doctor?.toUpperCase()||'', p.origin?.toUpperCase()||'', 
-                p.proc?.toUpperCase()||'', p.dest?.toUpperCase()||'', p.opme?.toUpperCase()||'', p.obs||''
-            ]) : [['', '', '', '', '', '', '', '', '', '', '', '']];
-
-            // A largura das colunas críticas foi fixada aqui! (DN e Origem)
             doc.autoTable({ 
                 startY: 35, head: [cols], body: rows, theme: 'grid', 
-                styles: { fontSize: 7, halign: 'center', textColor: [0, 0, 0], lineWidth: 0.3, lineColor: [0, 0, 0] }, 
-                headStyles: { fillColor: [255, 255, 255], textColor: [0,0,0], fontStyle: 'bold', lineWidth: 0.3 }, 
+                styles: { fontSize: 6.5, cellPadding: 1, halign: 'center', textColor: [0,0,0], lineWidth: 0.3, lineColor: [0,0,0] }, 
+                headStyles: { fillColor: [255,255,255], fontStyle: 'bold' }, 
                 columnStyles: { 
-                    2: { fontStyle: 'bold', cellWidth: 40 }, // Paciente
-                    3: { cellWidth: 18 }, // DN (Nascimento)
-                    7: { cellWidth: 18 }  // Origem
+                    0: { cellWidth: 13 }, 1: { cellWidth: 14 }, 2: { cellWidth: 38, fontStyle: 'bold' }, 
+                    3: { cellWidth: 18 }, 4: { cellWidth: 10 }, 5: { cellWidth: 20 }, 
+                    6: { cellWidth: 28 }, 7: { cellWidth: 18 }, 8: { cellWidth: 35 }, 
+                    9: { cellWidth: 21 }, 10: { cellWidth: 30 }, 11: { cellWidth: 24 } 
                 } 
             });
             doc.save(`Agenda_${selectedDay}.pdf`);
         }
 
-        // --- PDF VAZIO RESTAURADO COMO ORIGINAL ---
         async function exportPDFVazio() {
             const { jsPDF } = window.jspdf; const doc = new jsPDF('landscape');
+            
+            // Adicionado: Puxar a data exata do dia selecionado
+            const dateParts = selectedDay.split('-');
+            const dateObj = new Date(dateParts[0], dateParts[1]-1, dateParts[2]);
+            const formattedDate = `DIA ${dateParts[2]}/${dateParts[1]} (${WEEKDAYS[dateObj.getDay()]})`;
+
             doc.setFillColor(218, 232, 252); doc.rect(14, 10, 269, 12, 'F');
             doc.setFontSize(22); doc.setFont(undefined, 'bold'); doc.text('HEMODINÂMICA', 148.5, 19, { align: 'center' });
             
-            const cols = ['HORÁRIO', 'SALA/RPA', 'PACIENTE', 'DN', 'IDADE', 'CONVÊNIO', 'MÉDICO EXECUTOR', 'ORIGEM', 'PROCEDIMENTO', 'DESTINO', 'OPME', 'OBSERVAÇÃO'];
+            // Adicionado: Desenhar a caixa amarela e o texto da data no topo
+            doc.setFillColor(255, 255, 0); doc.rect(14, 25, 75, 8, 'F');
+            doc.setFontSize(10); doc.text(formattedDate, 16, 30.5);
             
+            const cols = ['HORÁRIO', 'SALA/RPA', 'PACIENTE', 'DN', 'IDADE', 'CONVÊNIO', 'MÉDICO EXECUTOR', 'ORIGEM', 'PROCEDIMENTO', 'DESTINO', 'OPME', 'OBSERVAÇÃO'];
             doc.autoTable({ 
                 startY: 35, head: [cols], 
                 body: [[{ content: 'SEM AGENDAMENTO', colSpan: 12, styles: { halign: 'center', fontStyle: 'bold', fontSize: 16, cellPadding: 20 } }]], 
-                theme: 'grid', 
-                styles: { lineWidth: 0.3, lineColor: [0, 0, 0] },
-                headStyles: { fillColor: [255, 255, 255], textColor: [0,0,0], fontStyle: 'bold' } 
+                theme: 'grid', styles: { lineWidth: 0.3, lineColor: [0,0,0] }, headStyles: { fillColor: [255,255,255], fontStyle: 'bold' } 
             });
             doc.save(`Agenda_Vazia_${selectedDay}.pdf`);
         }
